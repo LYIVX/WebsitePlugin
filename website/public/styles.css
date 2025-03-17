@@ -1,185 +1,89 @@
 :root {
-  /* Brand Colors - Core theme colors */
-  --brand-base: #7c4dff;
-  --brand-dark: #5e35b1;
-  --brand-light: #b388ff;
-  --brand-accent: #00e5ff;
-
-  /* System Colors - Status and feedback */
-  --sys-success: #00c853;
-  --sys-warning: #ffd600;
-  --sys-error: #ff1744;
-
-  /* Type Colors - Text hierarchy */
-  --type-head: #2c3e50;
-  --type-body: #546e7a;
-  --type-dim: #b0bec5;
-  --type-light: #ffffff;
-
-  /* Light Mode - Surface colors */
-  --light-base: #ffffff;
-  --light-alt: #f8fafc;
-  --light-dim: #f5f7fa;
-
-  /* Dark Mode - Surface colors */
-  --dark-void: #000000;    /* Absolute black - Highest contrast */
-  --dark-abyss: #050505;   /* Nearly black - Very high contrast */
-  --dark-deep: #0a0a0a;    /* Very dark - High contrast */
-  --dark-mid: #141414;     /* Dark - Medium contrast */
-  --dark-base: #1a1a1a;    /* Less dark - Lower contrast */
-
-  /* Border Colors */
-  --border-base: #e0e0e0;
-  --border-hover: #b0bec5;
-  --border-dark: rgba(255, 255, 255, 0.1);
-
-  /* Effects - Interactive states and elevations */
-  --fx-hover: rgba(124, 77, 255, 0.1);
-  --fx-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
-  --fx-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --fx-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --fx-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-
-  /* Spacing - Consistent spacing units */
-  --space-xs: 0.25rem;
-  --space-sm: 0.5rem;
-  --space-md: 1rem;
-  --space-lg: 1.5rem;
-  --space-xl: 2rem;
-
-  /* Legacy mappings for backward compatibility */
-  --primary-color: var(--brand-base);
-  --primary-dark: var(--brand-dark);
-  --primary-light: var(--brand-light);
+  /* Brand Colors */
+  --brand-base: #7c4dff; --brand-dark: #5e35b1; --brand-light: #b388ff; --brand-accent: #00e5ff;
+  /* System Colors */
+  --sys-success: #00c853; --sys-warning: #ffd600; --sys-error: #ff1744;
+  /* Type Colors */
+  --type-head: #2c3e50; --type-body: #546e7a; --type-dim: #b0bec5; --type-light: #ffffff;
+  /* Light Mode */
+  --light-base: #ffffff; --light-alt: #f8fafc; --light-dim: #f5f7fa;
+  /* Dark Mode */
+  --dark-void: #000000; --dark-abyss: #050505; --dark-deep: #0a0a0a; --dark-mid: #141414; --dark-base: #1a1a1a;
+  /* Borders & Effects */
+  --border-base: #e0e0e0; --border-hover: #b0bec5; --border-dark: rgba(255,255,255,0.1);
+  --fx-hover: rgba(124,77,255,0.1);
+  --fx-shadow-sm: 0 2px 4px rgba(0,0,0,0.1); --fx-shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --fx-shadow-lg: 0 10px 15px rgba(0,0,0,0.1); --fx-shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+  /* Spacing */
+  --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2rem;
+  /* Legacy Mappings */
+  --primary-color: var(--brand-base); --primary-dark: var(--brand-dark); --primary-light: var(--brand-light);
   --accent-color: var(--brand-accent);
-  --success-color: var(--sys-success);
-  --warning-color: var(--sys-warning);
-  --error-color: var(--sys-error);
-  --text-primary: var(--type-head);
-  --text-secondary: var(--type-body);
-  --text-light: var(--type-dim);
-  --text-white: var(--type-light);
-  --bg-primary: var(--light-alt);
-  --bg-secondary: var(--light-dim);
-  --bg-light: var(--light-base);
-  --bg-dark: var(--dark-base);
-  --bg-darker: var(--dark-mid);
-  --bg-darkest: var(--dark-deep);
-  --bg-abyss: var(--dark-abyss);
-  --bg-void: var(--dark-void);
-  --bg-hover: var(--fx-hover);
+  --success-color: var(--sys-success); --warning-color: var(--sys-warning); --error-color: var(--sys-error);
+  --text-primary: var(--type-head); --text-secondary: var(--type-body);
+  --text-light: var(--type-dim); --text-white: var(--type-light);
+  --bg-primary: var(--light-alt); --bg-secondary: var(--light-dim); --bg-light: var(--light-base);
+  --bg-dark: var(--dark-base); --bg-darker: var(--dark-mid); --bg-darkest: var(--dark-deep);
+  --bg-abyss: var(--dark-abyss); --bg-void: var(--dark-void); --bg-hover: var(--fx-hover);
   --border-color: var(--border-base);
-  --shadow-sm: var(--fx-shadow-sm);
-  --shadow-md: var(--fx-shadow-md);
-  --shadow-lg: var(--fx-shadow-lg);
-  --shadow-xl: var(--fx-shadow-xl);
-  --spacing-xs: var(--space-xs);
-  --spacing-sm: var(--space-sm);
-  --spacing-md: var(--space-md);
-  --spacing-lg: var(--space-lg);
-  --spacing-xl: var(--space-xl);
-
+  --shadow-sm: var(--fx-shadow-sm); --shadow-md: var(--fx-shadow-md);
+  --shadow-lg: var(--fx-shadow-lg); --shadow-xl: var(--fx-shadow-xl);
+  --spacing-xs: var(--space-xs); --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md); --spacing-lg: var(--space-lg); --spacing-xl: var(--space-xl);
   /* Animation */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.3s ease;
-  --transition-slow: 0.5s ease;
-
+  --transition-fast: 0.15s ease; --transition-base: 0.3s ease; --transition-slow: 0.5s ease;
   /* Layout */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-full: 9999px;
-
-  /* Serverwide Rank Colors */
-  --rank-shadow: #940094;      /* Shadow Enchanter - Mystical purple */
-  --rank-void: #370057;        /* Void Walker - Deep blue */
-  --rank-ethereal: #00e1ff;    /* Ethereal Warden - Cyan */
-  --rank-astral: #00ff62;      /* Astral Guardian - Orange */
-
-  /* Towny Rank Colors */
-  --rank-citizen: #4caf50;     /* Citizen - Nature green */
-  --rank-merchant: #8bc34a;    /* Merchant - Light green */
-  --rank-councilor: #cddc39;   /* Councilor - Lime */
-  --rank-mayor: #ffc107;       /* Mayor - Amber */
-  --rank-governor: #ff9800;    /* Governor - Orange */
-  --rank-noble: #ff5722;       /* Noble - Deep orange */
-  --rank-duke: #f44336;        /* Duke - Red */
-  --rank-king: #9c27b0;        /* King - Purple */
-  --rank-divine: #e91e63;      /* Divine Ruler - Pink */
-
-  /* Legacy rank color mappings */
-  --shadow-enchanter: var(--rank-shadow);
-  --void-walker: var(--rank-void);
-  --ethereal-warden: var(--rank-ethereal);
-  --astral-guardian: var(--rank-astral);
-  --citizen: var(--rank-citizen);
-  --merchant: var(--rank-merchant);
-  --councilor: var(--rank-councilor);
-  --mayor: var(--rank-mayor);
-  --governor: var(--rank-governor);
-  --noble: var(--rank-noble);
-  --duke: var(--rank-duke);
-  --king: var(--rank-king);
-  --divine-ruler: var(--rank-divine);
-
-  /* Animation */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.3s ease;
-  --transition-slow: 0.5s ease;
-
-  /* Layout */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 1rem;
-  --radius-full: 9999px;
+  --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 1rem; --radius-full: 9999px;
+  /* Rank Colors */
+  --rank-shadow: #940094; --rank-void: #370057; --rank-ethereal: #00e1ff; --rank-astral: #00ff62;
+  --rank-citizen: #4caf50; --rank-merchant: #8bc34a; --rank-councilor: #cddc39;
+  --rank-mayor: #ffc107; --rank-governor: #ff9800; --rank-noble: #ff5722;
+  --rank-duke: #f44336; --rank-king: #9c27b0; --rank-divine: #e91e63;
+  /* Legacy Rank Mappings */
+  --shadow-enchanter: var(--rank-shadow); --void-walker: var(--rank-void);
+  --ethereal-warden: var(--rank-ethereal); --astral-guardian: var(--rank-astral);
+  --citizen: var(--rank-citizen); --merchant: var(--rank-merchant);
+  --councilor: var(--rank-councilor); --mayor: var(--rank-mayor);
+  --governor: var(--rank-governor); --noble: var(--rank-noble);
+  --duke: var(--rank-duke); --king: var(--rank-king); --divine-ruler: var(--rank-divine);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-white);
   line-height: 1.6;
-  padding-top: 0; /* Remove fixed padding */
+  padding-top: 0;
 }
+body.has-navbar { padding-top: 64px; }
 
-/* Add padding only when navbar is present */
-body.has-navbar {
-  padding-top: 64px; /* Account for fixed navbar */
-}
-
-/* Container */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
 }
 
-/* Navbar */
 .navbar {
   background-color: rgba(20, 24, 39, 0.95);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
   position: fixed;
   width: 100%;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
 
 .navbar-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0;
   max-width: 1400px;
   margin: 0 auto;
   height: 64px;
+  padding: 0;
 }
 
 .navbar-brand {
@@ -190,129 +94,60 @@ body.has-navbar {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  transition: all 0.3s ease;
+  transition: var(--transition-base);
   padding: 0 2rem;
   height: 100%;
 }
+.navbar-brand:hover { color: var(--primary-color); }
 
-.navbar-brand:hover {
-  color: var(--primary-color);
-}
-
-.navbar-menu {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
+.navbar-menu { display: flex; align-items: center; height: 100%; }
 
 .nav-links-container {
   display: flex;
   align-items: center;
-  background: rgba(30, 34, 49, 0.95);
+  background: rgba(30,34,49,0.95);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255,255,255,0.05);
   height: 40px;
   margin: 0 1rem;
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255,255,255,0.8);
   text-decoration: none;
   font-weight: 600;
-  transition: all 0.3s ease;
+  transition: var(--transition-fast);
   padding: 0 1.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
   height: 40px;
-  line-height: 40px; /* Add line height to ensure text is vertically centered */
+  line-height: 40px;
 }
-
-.nav-link:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.nav-link.active {
-  color: #fff;
-  background: rgba(106, 17, 203, 0.4);
-}
+.nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.nav-link.active { color: #fff; background: rgba(106,17,203,0.4); }
 
 .user-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(106, 17, 203, 0.4);
+  color: rgba(255,255,255,0.9);
+  background: rgba(106,17,203,0.4);
 }
+.user-link i { color: #ff3a3a; font-size: 1rem; }
 
-.user-link i {
-  color: #ff3a3a;
-  font-size: 1rem;
-}
-
-/* Responsive navbar */
+/* Responsive Navbar */
 @media (max-width: 768px) {
-  .navbar-container {
-    padding: 0;
-    flex-direction: column;
-    height: auto;
-  }
-  
-  .navbar-brand {
-    padding: 1rem 2rem;
-    height: auto;
-  }
-  
-  .nav-links-container {
-    flex-wrap: wrap;
-    margin: 0;
-    border-radius: 0;
-    height: auto;
-  }
-  
-  .nav-link {
-    width: 100%;
-    text-align: center;
-    padding: 1rem;
-    height: 48px;
-    justify-content: center;
-  }
-  
-  .auth-container {
-    width: 100%;
-    justify-content: center;
-    margin-left: 0;
-    padding-left: 0;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 0;
-    margin-top: 0;
-    height: 48px;
-  }
-  
-  .auth-button {
-    width: 100%;
-    justify-content: center;
-    border-radius: 0;
-    height: 48px;
-    background: rgba(30, 34, 49, 0.95);
-  }
-  
-  .user-menu {
-    width: 100%;
-    justify-content: center;
-    padding: 0 0.75rem;
-    height: 48px;
-    border-radius: 0;
-  }
-  
-  .dropdown-content {
-    width: 100%;
-    position: relative;
-    margin-top: var(--spacing-sm);
-  }
+  .navbar-container { flex-direction: column; height: auto; padding: 0; }
+  .navbar-brand { padding: 1rem 2rem; height: auto; }
+  .nav-links-container { flex-wrap: wrap; margin: 0; border-radius: 0; height: auto; }
+  .nav-link { width: 100%; text-align: center; padding: 1rem; height: 48px; justify-content: center; }
+  .auth-container, .user-menu { width: 100%; justify-content: center; height: 48px; border-radius: 0; }
+  .auth-container { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px solid rgba(255,255,255,0.1); }
+  .auth-button { width: 100%; justify-content: center; border-radius: 0; height: 48px; background: rgba(30,34,49,0.95); }
+  .user-menu { padding: 0 0.75rem; }
+  .dropdown-content { width: 100%; position: relative; margin-top: var(--spacing-sm); }
 }
 
 /* Buttons */
@@ -329,36 +164,14 @@ body.has-navbar {
   transition: var(--transition-fast);
   text-decoration: none;
 }
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: var(--text-white);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-dark);
-}
-
-.btn-secondary {
-  background-color: var(--accent-color);
-  color: var(--text-white);
-}
-
-.btn-secondary:hover {
-  opacity: 0.9;
-}
+.btn-primary { background-color: var(--primary-color); color: var(--text-white); }
+.btn-primary:hover { background-color: var(--primary-dark); }
+.btn-secondary { background-color: var(--accent-color); color: var(--text-white); }
+.btn-secondary:hover { opacity: 0.9; }
 
 /* Forms */
-.form-group {
-  margin-bottom: var(--spacing-lg);
-}
-
-.form-label {
-  display: block;
-  margin-bottom: var(--spacing-sm);
-  color: var(--text-light);
-}
-
+.form-group { margin-bottom: var(--spacing-lg); }
+.form-label { display: block; margin-bottom: var(--spacing-sm); color: var(--text-light); }
 .form-control {
   width: 100%;
   padding: var(--spacing-sm);
@@ -368,11 +181,7 @@ body.has-navbar {
   color: var(--text-white);
   transition: var(--transition-fast);
 }
-
-.form-control:focus {
-  outline: none;
-  border-color: var(--primary-color);
-}
+.form-control:focus { outline: none; border-color: var(--primary-color); }
 
 /* Cards */
 .card {
@@ -383,20 +192,9 @@ body.has-navbar {
 }
 
 /* Grid */
-.grid {
-  display: grid;
-  gap: var(--spacing-lg);
-}
-
-.grid-2 {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-@media (max-width: 768px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-}
+.grid { display: grid; gap: var(--spacing-lg); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
 
 /* Animations */
 .fade-in {
@@ -796,23 +594,19 @@ body.has-navbar {
   grid-template-columns: 1fr 280px;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 2rem var(--spacing-md);
   gap: 2rem;
-  min-height: 100vh;
-  position: relative; /* Add position relative */
-}
-
-/* Create a placeholder for the fixed sidebar to maintain layout */
-.shop-layout::after {
-  content: '';
-  display: block;
-  width: 280px;
-  grid-column: 2;
-  height: 1px; /* Just needs to exist to maintain the grid */
+  position: relative;
+  align-items: start;
+  min-height: calc(100vh - 64px); /* Account for navbar height */
 }
 
 .shop-content {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100%;
 }
 
 .shop-header {
@@ -846,64 +640,35 @@ body.has-navbar {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  position: fixed;
-  /* top position will be set by JavaScript */
-  height: fit-content;
-  max-height: calc(100vh - 4rem);
+  position: sticky;
+  top: 6rem;
+  height: calc(100vh - 8rem);
   overflow-y: auto;
-  /* Hide scrollbar but allow scrolling */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
-  /* Calculate right position based on layout */
-  right: calc((100% - 1400px) / 2 + var(--spacing-md));
-  /* Use transform for smoother transitions */
-  transform: translateZ(0);
-  will-change: transform, top;
-  z-index: 10; /* Ensure it stays above other content */
-  /* No transition by default to prevent jumping */
-  transition: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2rem; /* Add padding at the bottom */
 }
 
-/* Add smooth transition class that will be toggled by JavaScript */
-.avatar-preview-section.smooth-transition {
-  transition: top 0.2s ease-out;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
 .avatar-preview-section::-webkit-scrollbar {
   display: none;
 }
 
-/* Home page specific styles for sidebar */
-.shop-container .avatar-preview-section .avatar-preview-card,
-.shop-container .avatar-preview-section .payment-goal-card {
-  margin-bottom: 1.5rem;
-}
-
-.shop-container .avatar-preview-section .payment-goal-card:last-child {
-  margin-bottom: 0;
-}
-
-/* Adjust for different screen heights - remove since JavaScript will handle it */
-@media (max-height: 800px) {
-  .shop-container .avatar-preview-section {
-    /* top position will be set by JavaScript */
-  }
-}
-
-@media (max-height: 600px) {
-  .shop-container .avatar-preview-section {
-    /* top position will be set by JavaScript */
-  }
-}
-
-.avatar-preview-card {
+.avatar-preview-card,
+.payment-goal-card {
   background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
   overflow: hidden;
   backdrop-filter: blur(10px);
-  border: none; /* Removed the white border */
+  border: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-card {
+  flex: 0 0 auto;
+}
+
+.payment-goal-card {
+  flex: 1 0 auto; /* Changed to flex-grow: 1 and flex-shrink: 0 */
   display: flex;
   flex-direction: column;
 }
@@ -965,23 +730,6 @@ body.has-navbar {
   margin-right: 4px;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
-
-/* Serverwide Rank Prefixes */
-.shadow-enchanter-prefix { color: var(--rank-shadow) !important; }
-.void-walker-prefix { color: var(--rank-void) !important; }
-.ethereal-warden-prefix { color: var(--rank-ethereal) !important; }
-.astral-guardian-prefix { color: var(--rank-astral) !important; }
-
-/* Towny Rank Prefixes */
-.citizen-prefix { color: var(--rank-citizen) !important; }
-.merchant-prefix { color: var(--rank-merchant) !important; }
-.councilor-prefix { color: var(--rank-councilor) !important; }
-.mayor-prefix { color: var(--rank-mayor) !important; }
-.governor-prefix { color: var(--rank-governor) !important; }
-.noble-prefix { color: var(--rank-noble) !important; }
-.duke-prefix { color: var(--rank-duke) !important; }
-.king-prefix { color: var(--rank-king) !important; }
-.divine-ruler-prefix { color: var(--rank-divine) !important; }
 
 .avatar-preview img {
   width: 100%;
@@ -1063,7 +811,7 @@ body.has-navbar {
   border-radius: var(--radius-lg);
   overflow: hidden;
   backdrop-filter: blur(10px);
-  border: none; /* Removed the white border */
+  border: none;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
@@ -1124,31 +872,96 @@ body.has-navbar {
   margin-top: 0.5rem;
 }
 
-/* Responsive layout */
-@media (max-width: 1400px) {
-  .avatar-preview-section {
-    right: var(--spacing-md); /* Adjust for smaller screens */
+/* Home page specific styles for sidebar */
+.home-page .avatar-preview-section {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 6rem;
+  height: calc(100vh - 8rem);
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2rem;
+}
+
+.home-page .avatar-preview-section::-webkit-scrollbar {
+  display: none;
+}
+
+.home-page .avatar-preview-section .avatar-preview-card,
+.home-page .avatar-preview-section .payment-goal-card {
+  margin-bottom: 1.5rem;
+}
+
+.home-page .avatar-preview-section .payment-goal-card:last-child {
+  margin-bottom: 0;
+}
+
+/* Ensure payment goal card stretches */
+.home-page .avatar-preview-section .payment-goal-card {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.home-page .avatar-preview-section .payment-goal-card .tab-bar-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.home-page .shop-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem var(--spacing-md);
+  gap: 2rem;
+  position: relative;
+  align-items: start;
+  min-height: calc(100vh - 64px);
+}
+
+.home-page .shop-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100%;
+}
+
+/* Adjust for different screen heights on home page */
+@media (max-height: 800px) {
+  .home-page .avatar-preview-section {
+    top: 4rem;
   }
 }
 
+@media (max-height: 600px) {
+  .home-page .avatar-preview-section {
+    top: 2rem;
+  }
+}
+
+/* Responsive layout for home page */
 @media (max-width: 1024px) {
-  .shop-layout {
+  .home-page .shop-layout {
     grid-template-columns: 1fr;
+    padding-top: 1rem;
   }
   
-  .shop-layout::after {
-    display: none; /* Remove placeholder on mobile */
-  }
-  
-  .avatar-preview-section {
-    position: static !important; /* Force static positioning on mobile */
+  .home-page .avatar-preview-section {
+    position: static;
     width: 100%;
     max-width: 320px;
     margin: 0 auto 2rem auto;
-    max-height: none;
+    height: auto;
     overflow-y: visible;
-    right: auto;
-    transition: none; /* Remove transition on mobile */
+    padding-bottom: 0;
   }
 }
 
@@ -3264,7 +3077,7 @@ footer {
     }
 }
 
-/* Home page specific styles for sidebar */
+/* Shop page specific styles for sidebar */
 .shop-container .avatar-preview-section {
   top: 6rem; /* Adjust top position to align with the first tab-bar */
 }
@@ -3290,4 +3103,3 @@ footer {
     top: 2rem; /* Even less top space on very short screens */
   }
 }
-
