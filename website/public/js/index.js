@@ -346,12 +346,26 @@ function setupSidebarScroll() {
     let lastScrollY = window.scrollY;
     let ticking = false;
     
-    // Initial position
-    requestAnimationFrame(() => {
+    // Function to ensure elements are loaded before positioning
+    function ensureInitialPosition() {
+        // Force an immediate position update
         updateSidebarPosition();
-    });
+        
+        // Wait a short moment for any dynamic content to settle
+        setTimeout(updateSidebarPosition, 100);
+        
+        // Also update when all resources are loaded
+        if (document.readyState === 'complete') {
+            updateSidebarPosition();
+        } else {
+            window.addEventListener('load', updateSidebarPosition);
+        }
+    }
     
-    // Update on scroll with throttling to prevent jumping
+    // Call initial position setup
+    ensureInitialPosition();
+    
+    // Update on scroll with throttling
     window.addEventListener('scroll', () => {
         lastScrollY = window.scrollY;
         if (!ticking) {
@@ -373,6 +387,14 @@ function setupSidebarScroll() {
     });
     
     function updateSidebarPosition() {
+        const sidebar = document.querySelector('.avatar-preview-section');
+        const shopContent = document.querySelector('.shop-content');
+        const firstTabBar = document.querySelector('.shop-content .tab-bar:first-child');
+        const lastTabBar = document.querySelector('.shop-content .tab-bar:last-child');
+        const paymentGoal = document.querySelector('.server-payment-goal');
+        
+        if (!sidebar || !shopContent || !firstTabBar || !lastTabBar) return;
+        
         // If on mobile, don't apply fixed positioning
         if (window.innerWidth <= 1024) {
             sidebar.style.position = 'static';
@@ -387,6 +409,7 @@ function setupSidebarScroll() {
         const lastTabBarRect = lastTabBar.getBoundingClientRect();
         const sidebarRect = sidebar.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
+        const paymentGoalRect = paymentGoal ? paymentGoal.getBoundingClientRect() : lastTabBarRect;
         
         // If the sidebar is taller than the viewport, don't apply fixed positioning
         if (sidebarRect.height > viewportHeight - 20) {
@@ -402,39 +425,36 @@ function setupSidebarScroll() {
         sidebar.style.width = '280px';
         sidebar.style.margin = '0';
         
-        // Get the exact top of the first tab bar and bottom of the last tab bar
-        const firstTabBarTop = firstTabBarRect.top;
-        const lastTabBarBottom = lastTabBarRect.bottom;
+        // Set minimum top position
+        const minTopPosition = 80;
         
-        // Calculate the top position for the sidebar
+        // Calculate the bottom boundary including the payment goal section
+        const gridBottom = Math.min(paymentGoalRect.bottom, lastTabBarRect.bottom);
+        const gridTop = firstTabBarRect.top;
+        
+        // Calculate position
         let topPosition;
         
-        // Add a small buffer for smoother transitions (5px)
-        const buffer = 5;
-        
-        // Set minimum top position to prevent going off screen
-        const minTopPosition = 80; // Increased from 20px to 80px to keep sidebar lower
-        
-        // If we're near the bottom of the page and can see the last tab bar
-        if (lastTabBarBottom <= viewportHeight + buffer) {
-            // Position the sidebar so its bottom aligns with the bottom of the last tab bar
-            topPosition = Math.max(minTopPosition, lastTabBarBottom - sidebarRect.height);
-            sidebar.classList.add('smooth-transition');
-        } 
-        // If we're at the top of the first tab bar
-        else if (firstTabBarTop >= -buffer) {
-            // Position the sidebar so its top aligns with the top of the first tab bar
-            topPosition = Math.max(minTopPosition, firstTabBarTop);
-            sidebar.classList.add('smooth-transition');
+        // If we're scrolled to or past the grid's bottom
+        if (gridBottom <= viewportHeight) {
+            // Lock to grid bottom
+            topPosition = gridBottom - sidebarRect.height;
         }
-        // If we're in the middle of scrolling through the content
+        // If we're at the top of the grid
+        else if (gridTop >= minTopPosition) {
+            topPosition = gridTop;
+        }
+        // Default position while scrolling within the grid
         else {
-            // Keep the sidebar at the minimum top position
             topPosition = minTopPosition;
-            sidebar.classList.remove('smooth-transition');
         }
         
-        // Apply the calculated top position
+        // Ensure position stays within grid bounds
+        const maxTopPosition = gridBottom - sidebarRect.height;
+        topPosition = Math.min(topPosition, maxTopPosition);
+        topPosition = Math.max(minTopPosition, topPosition);
+        
+        // Apply the position
         sidebar.style.top = `${Math.round(topPosition)}px`;
         
         // Adjust right position based on layout width
