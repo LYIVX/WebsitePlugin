@@ -1,0 +1,133 @@
+/* Universal Button Styles */
+.universal-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    text-decoration: none;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+/* Button types */
+.universal-btn.primary {
+    background-color: var(--primary-color, #7c4dff);
+    color: white;
+}
+
+.universal-btn.primary:hover:not(:disabled) {
+    background-color: var(--primary-dark, #6a11cb);
+}
+
+.universal-btn.secondary {
+    background-color: var(--accent-color, #00e5ff);
+    color: white;
+}
+
+.universal-btn.secondary:hover:not(:disabled) {
+    background-color: var(--accent-dark, #008a99);
+}
+
+.universal-btn.danger {
+    background-color: rgba(231, 76, 60, 0.8);
+    color: white;
+}
+
+.universal-btn.danger:hover:not(:disabled) {
+    background-color: rgba(231, 76, 60, 1);
+}
+
+/* Button sizes */
+.universal-btn.small {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.universal-btn.medium {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.universal-btn.large {
+    padding: 0.7rem 1.3rem;
+    font-size: 1.1rem;
+}
+
+/* Disabled state */
+.universal-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Icon styling */
+.universal-btn i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Link buttons */
+a.universal-btn {
+    display: inline-flex;
+}
+
+/* Fullwidth button */
+.universal-btn.full-width {
+    width: 100%;
+}
+
+/* Extend existing button styles */
+
+/* Make forum buttons look like universal buttons */
+.forum-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    text-decoration: none;
+    background-color: var(--primary-color, #7c4dff);
+    color: white;
+}
+
+.forum-action-btn:hover {
+    background-color: var(--primary-dark, #6a11cb);
+}
+
+/* Danger button styling */
+.btn-danger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    text-decoration: none;
+    background-color: rgba(231, 76, 60, 0.8);
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: rgba(231, 76, 60, 1);
+} 

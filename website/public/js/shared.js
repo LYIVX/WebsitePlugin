@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.body.classList.add('has-navbar');
         }
 
+        // Initialize mobile menu toggle
+        initMobileMenu();
+
         // Load footer
         const footerResponse = await fetch('/components/footer.html');
         if (!footerResponse.ok) throw new Error('Failed to load footer');
@@ -38,6 +41,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleError(error, 'Failed to initialize page');
     }
 });
+
+// Initialize mobile menu functionality
+function initMobileMenu() {
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const navbarMenu = document.querySelector('.navbar-menu');
+    
+    if (mobileMenuToggle && navbarMenu) {
+        mobileMenuToggle.addEventListener('click', () => {
+            navbarMenu.classList.toggle('active');
+            
+            // Change icon based on menu state
+            const icon = mobileMenuToggle.querySelector('i');
+            if (navbarMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+        
+        // Close mobile menu when a link is clicked
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navbarMenu.classList.remove('active');
+                const icon = mobileMenuToggle.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            });
+        });
+    }
+}
 
 // Authentication handling
 async function checkAuthState() {

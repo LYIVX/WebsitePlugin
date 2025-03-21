@@ -1,0 +1,540 @@
+/* Mobile responsiveness improvements */
+
+/* General mobile styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--spacing-sm);
+    width: 100%;
+  }
+  
+  /* Typography adjustments */
+  .shop-header h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  .shop-header p {
+    font-size: 1rem;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+    max-width: 100%;
+  }
+  
+  /* Layout adjustments */
+  .shop-layout, .home-page .shop-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .avatar-preview-section, .home-page .avatar-preview-section {
+    position: relative;
+    top: auto;
+    right: auto;
+    max-width: 100%;
+    max-height: none;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  /* Rank grid improvements */
+  .rank-grid, .home-rank-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .rank-card {
+    width: 100%;
+    margin-bottom: 1rem;
+    transform: none !important;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .rank-card:hover {
+    transform: none !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .rank-header {
+    padding: 1.5rem 1rem;
+  }
+  
+  .rank-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .rank-price {
+    font-size: 1.2rem;
+  }
+  
+  .rank-features {
+    padding: 0.5rem;
+  }
+  
+  .rank-features li {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+  
+  /* Tab bar improvements */
+  .tab-bar-nav {
+    padding: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .tab-bar-nav::-webkit-scrollbar {
+    height: 3px;
+  }
+  
+  .tab-bar-nav::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  
+  .tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    min-width: auto;
+    flex: 0 0 auto;
+  }
+  
+  .tab-bar-content {
+    padding: 1rem;
+  }
+  
+  /* Form elements */
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .payment-methods {
+    flex-direction: column;
+  }
+  
+  .payment-method {
+    width: 100%;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  /* Cards */
+  .feature-card, .rank-card {
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  /* Footer adjustments */
+  .footer-container {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+  }
+  
+  .footer-brand {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .footer-menu {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .footer-links-container {
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .footer-link {
+    padding: 0.75rem 0;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .social-icon {
+    margin: 0 0.5rem;
+  }
+  
+  .site-footer .footer-bottom {
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  /* Profile page improvements */
+  .profile-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-avatar {
+    margin-bottom: 1rem;
+  }
+  
+  .profile-stats {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    padding: 1rem;
+  }
+  
+  /* Forum improvements */
+  .forum-filters {
+    flex-direction: column;
+  }
+  
+  .forum-filters .search-box, 
+  .forum-filters select {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .forum-meta {
+    flex-wrap: wrap;
+  }
+  
+  .forum-meta span {
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .forum-content pre {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  
+  /* Cart improvements */
+  .cart-card {
+    width: 100%;
+  }
+  
+  .cart-items {
+    max-height: 300px;
+  }
+  
+  .cart-footer {
+    padding: 0.75rem;
+  }
+  
+  .cart-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .cart-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  /* Typography */
+  .tab-bar-nav {
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .tab-bar-nav h3 {
+    font-size: 1rem;
+  }
+  
+  .tab-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  .shop-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .shop-header p {
+    font-size: 0.9rem;
+  }
+  
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+  
+  /* UI components */
+  .btn, .universal-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .cart-item {
+    padding: 0.75rem;
+  }
+  
+  .footer-bottom p {
+    font-size: 0.8rem;
+  }
+  
+  /* Form elements */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+  
+  /* Modal dialogs */
+  .modal-content {
+    width: 95%;
+    padding: 1rem;
+  }
+  
+  /* Profile page */
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .profile-details h1 {
+    font-size: 1.5rem;
+  }
+  
+  /* Rank cards - extra small devices */
+  .rank-card {
+    padding: 0 1rem 1rem;
+  }
+  
+  .rank-header {
+    padding: 1.25rem 0.75rem;
+  }
+  
+  .rank-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .rank-price {
+    font-size: 1.1rem;
+  }
+  
+  .rank-features li {
+    padding: 0.4rem;
+    font-size: 0.85rem;
+  }
+  
+  /* Avatar preview */
+  .avatar-preview {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .avatar-preview img {
+    max-width: 80%;
+    height: auto;
+  }
+  
+  .minecraft-nametag {
+    font-size: 0.9rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* Fix for very small devices */
+@media (max-width: 360px) {
+  .tab-btn {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  
+  .rank-header h3 {
+    font-size: 1rem;
+  }
+  
+  .rank-price {
+    font-size: 1rem;
+  }
+  
+  .rank-features li {
+    font-size: 0.8rem;
+  }
+  
+  .shop-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .shop-header p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile-specific rank grid styling */
+.rank-grid-mobile {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.rank-grid-mobile .rank-card {
+  width: 100%;
+  padding: 0 0 1rem 0;
+}
+
+.rank-grid-mobile .rank-header {
+  padding: 1.25rem 1rem;
+}
+
+.rank-grid-mobile .rank-features {
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.rank-grid-mobile .rank-features li {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 0.25rem;
+}
+
+.rank-grid-mobile .rank-features li:hover,
+.rank-grid-mobile .rank-features li.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.rank-grid-mobile .rank-features li i {
+  margin-right: 0.5rem;
+  min-width: 1rem;
+  text-align: center;
+}
+
+.rank-grid-mobile .feature-text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+.rank-grid-mobile .card-button-container {
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.rank-grid-mobile .card-button-container .universal-btn,
+.rank-grid-mobile .card-button-container .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Fixes for mobile rank position on home page */
+@media (max-width: 768px) {
+  .home-rank-grid .rank-position {
+    display: inline-block;
+    margin: 0 auto 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .rank-grid-mobile .rank-card {
+    margin-bottom: 1.5rem;
+  }
+  
+  .rank-grid-mobile .rank-header h3 {
+    font-size: 1.1rem;
+  }
+  
+  .rank-grid-mobile .rank-price {
+    font-size: 1.1rem;
+  }
+  
+  .rank-grid-mobile .rank-category {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Shop page specific navbar fixes */
+.shop-container .navbar {
+  display: block !important;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+}
+
+.shop-container .navbar-container {
+  display: flex;
+  position: relative;
+}
+
+.shop-container .navbar-brand {
+  display: flex;
+  padding: 0 2rem;
+}
+
+.shop-container .mobile-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .shop-container .mobile-menu-toggle {
+    display: block;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 1010;
+  }
+
+  .shop-container .navbar-container {
+    flex-direction: column;
+    height: auto;
+    padding: 0;
+  }
+
+  .shop-container .navbar-menu {
+    display: none;
+    width: 100%;
+  }
+
+  .shop-container .navbar-menu.active {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: rgba(20, 24, 39, 0.95);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+  
+  .shop-container {
+    padding-top: 64px;
+  }
+  
+  /* Fix for the shop container padding on mobile */
+  body.has-navbar .shop-container {
+    margin-top: 0;
+  }
+}
+
+/* Shop-page specific fixes */
+.shop-page .navbar {
+  display: block !important;
+  position: fixed !important;
+  z-index: 1100 !important;
+}
+
+.shop-page {
+  padding-top: 64px !important;
+}
+
+@media (max-width: 768px) {
+  .shop-page .shop-container {
+    padding-top: 20px;
+  }
+  
+  .shop-page .navbar-menu.active {
+    z-index: 1050;
+  }
+  
+  .shop-page .shop-layout {
+    margin-top: 0;
+  }
+} 

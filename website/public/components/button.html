@@ -1,0 +1,129 @@
+<!-- Universal Button Component -->
+<div class="universal-button-component">
+    <button class="universal-btn">
+        <span class="btn-icon"></span>
+        <span class="btn-text"></span>
+    </button>
+</div>
+
+<script>
+    class UniversalButton extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+        }
+
+        connectedCallback() {
+            const btnType = this.getAttribute('type') || 'primary';
+            const btnText = this.getAttribute('text') || 'Button';
+            const btnIcon = this.getAttribute('icon') || '';
+            const btnSize = this.getAttribute('size') || 'medium';
+            const btnDisabled = this.hasAttribute('disabled');
+
+            this.shadowRoot.innerHTML = `
+                <style>
+                    :host {
+                        display: inline-block;
+                    }
+                    
+                    .universal-btn {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem;
+                        padding: 0.5rem 1rem;
+                        font-weight: 500;
+                        transition: all 0.2s ease;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-family: inherit;
+                        font-size: 1rem;
+                    }
+                    
+                    /* Button types */
+                    .universal-btn.primary {
+                        background-color: var(--primary-color, #7c4dff);
+                        color: white;
+                    }
+                    
+                    .universal-btn.primary:hover:not(:disabled) {
+                        background-color: var(--primary-dark, #6a11cb);
+                    }
+                    
+                    .universal-btn.secondary {
+                        background-color: var(--accent-color, #3c3f58);
+                        color: white;
+                    }
+                    
+                    .universal-btn.secondary:hover:not(:disabled) {
+                        opacity: 0.9;
+                    }
+                    
+                    .universal-btn.danger {
+                        background-color: rgba(231, 76, 60, 0.8);
+                        color: white;
+                    }
+                    
+                    .universal-btn.danger:hover:not(:disabled) {
+                        background-color: rgba(231, 76, 60, 1);
+                    }
+                    
+                    /* Button sizes */
+                    .universal-btn.small {
+                        padding: 0.3rem 0.7rem;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .universal-btn.medium {
+                        padding: 0.5rem 1rem;
+                        font-size: 1rem;
+                    }
+                    
+                    .universal-btn.large {
+                        padding: 0.7rem 1.3rem;
+                        font-size: 1.1rem;
+                    }
+                    
+                    /* Disabled state */
+                    .universal-btn:disabled {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                </style>
+                
+                <button class="universal-btn ${btnType} ${btnSize}" ${btnDisabled ? 'disabled' : ''}>
+                    ${btnIcon ? `<i class="${btnIcon}"></i>` : ''}
+                    <span>${btnText}</span>
+                </button>
+            `;
+
+            // Add click event handling
+            const btn = this.shadowRoot.querySelector('.universal-btn');
+            btn.addEventListener('click', (e) => {
+                if (!btnDisabled) {
+                    // Dispatch a custom event that can be listened to
+                    this.dispatchEvent(new CustomEvent('button-click', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { source: this }
+                    }));
+                }
+            });
+        }
+
+        // Provide API for programmatically enabling/disabling the button
+        disable() {
+            const btn = this.shadowRoot.querySelector('.universal-btn');
+            btn.setAttribute('disabled', '');
+        }
+
+        enable() {
+            const btn = this.shadowRoot.querySelector('.universal-btn');
+            btn.removeAttribute('disabled');
+        }
+    }
+
+    // Define the custom element
+    customElements.define('universal-button', UniversalButton);
+</script> 

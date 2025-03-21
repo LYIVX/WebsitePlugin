@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enderfall - Forums</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/universal-button.css">
+    <link rel="stylesheet" href="/css/toggle-button.css">
+    <link rel="stylesheet" href="/css/mobile.css">
+    
+    <!-- Prism.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+</head>
+<body>
+    <!-- Navigation will be loaded by shared.js -->
+    
+    <main class="shop-container fade-in">
+        <div class="shop-header slide-in">
+            <h1>Community Forums</h1>
+            <p>Join the conversation with our community. Share ideas, ask questions, and connect with other players.</p>
+        </div>
+
+        <div class="container">
+            <!-- Forum Categories and Actions -->
+            <section class="tab-bar">
+                <div class="tab-bar-nav">
+                    <h3>Discussion Categories</h3>
+                </div>
+                <div class="tab-bar-content">
+                    <div class="forum-actions">
+                        <div class="forum-filters">
+                            <select id="categoryFilter" class="form-control">
+                                <option value="all">All Categories</option>
+                                <option value="announcements">Announcements</option>
+                                <option value="discussion">General Discussion</option>
+                                <option value="suggestions">Suggestions</option>
+                                <option value="help">Help & Support</option>
+                                <option value="offtopic">Off-Topic</option>
+                            </select>
+                            <div class="search-box">
+                                <input type="text" id="forumSearch" placeholder="Search forums..." class="form-control">
+                                <i class="fa fa-search"></i>
+                            </div>
+                        </div>
+                        <button id="createForumBtn" class="universal-btn primary" style="padding: 0.8rem 1rem;">
+                            <i class="fas fa-plus"></i> New Discussion
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Forum List View -->
+            <section id="forumListSection" class="tab-bar">
+                <div class="tab-bar-nav">
+                    <h3>Discussions</h3>
+                </div>
+                <div class="tab-bar-content">
+                    <div class="forum-list" id="forumList">
+                        <!-- Forum posts will be loaded dynamically -->
+                        <div class="empty-state" id="emptyForumState">
+                            <i class="fas fa-comments"></i>
+                            <p>No discussions found. Be the first to start a conversation!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Individual Forum View (hidden by default) -->
+            <section id="forumViewSection" class="tab-bar" style="display: none;">
+                <div class="tab-bar-nav">
+                    <h3 id="forumTitle">Forum Title</h3>
+                </div>
+                <div class="tab-bar-content">
+                    <div class="forum-header">
+                        <div class="forum-meta">
+                            <span id="forumAuthor"><i class="fas fa-user"></i> Username</span>
+                            <span id="forumDate"><i class="fas fa-calendar"></i> Date</span>
+                            <span id="forumViews"><i class="fas fa-eye"></i> Views</span>
+                        </div>
+                        <div id="forumActions" class="forum-actions">
+                            <button id="backToForumsBtn" class="forum-action-btn universal-btn">
+                                <i class="fas fa-arrow-left"></i> Back to Forums
+                            </button>
+                            <div class="forum-actions-right">
+                                <!-- Edit/Delete buttons will appear here for the author -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="forum-content" id="forumContent">
+                        <!-- Forum content will be inserted here -->
+                    </div>
+                    <!-- Comments Section -->
+                    <div class="comments-section">
+                        <h3><i class="fas fa-comment-alt"></i> Comments</h3>
+                        <div id="commentsList" class="comments-list">
+                            <!-- Comments will be loaded dynamically -->
+                        </div>
+                        
+                        <div id="commentFormContainer" class="comment-form-container">
+                            <h4>Add a Comment</h4>
+                            <div class="login-prompt" id="loginPrompt" style="display: none;">
+                                <p>Please <a href="/auth/discord">login</a> to add a comment.</p>
+                            </div>
+                            <form id="commentForm">
+                                <div class="form-group">
+                                    <textarea id="commentContent" class="form-control" rows="4" placeholder="Write your comment here..."></textarea>
+                                </div>
+                                <button type="submit" class="universal-btn primary">Submit Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Create Forum Modal -->
+    <div id="createForumModal" class="modal">
+        <div class="modal-content forum-view-preview">
+            <span class="close" id="closeCreateModal">&times;</span>
+            <h2>Create New Discussion</h2>
+            
+            <form id="createForumForm">
+                <!-- Preview header that resembles the forum view -->
+                <div class="forum-header">
+                    <div class="form-group title-group">
+                        <input type="text" id="createForumTitle" class="form-control forum-title-input" placeholder="Enter a discussion title..." required>
+                    </div>
+                    
+                    <div class="form-group summary-group">
+                        <input type="text" id="createForumSummary" class="form-control forum-summary-input" placeholder="Enter a brief summary for your discussion (used in list preview)...">
+                    </div>
+                    
+                    <div class="forum-meta">
+                        <span><i class="fas fa-user"></i> Your Username</span>
+                        <span><i class="fas fa-calendar"></i> Today</span>
+                        <span>
+                            <select id="forumCategory" class="form-control category-dropdown" required onchange="updateCategoryDisplay(this, 'createCategoryBadge')">
+                                <option value="" disabled selected>Select a category</option>
+                                <option value="announcements">Announcements</option>
+                                <option value="discussion">General Discussion</option>
+                                <option value="suggestions">Suggestions</option>
+                                <option value="help">Help & Support</option>
+                                <option value="offtopic">Off-Topic</option>
+                            </select>
+                            <span id="createCategoryBadge" class="forum-category"></span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Content area styled like forum content -->
+                <div class="forum-content">
+                    <!-- Markdown toggle switch -->
+                    <div class="toggle-container">
+                        <label class="universal-toggle">
+                            <input type="checkbox" id="createMarkdownToggle" data-toggle-id="createMarkdown">
+                            <span class="universal-toggle-slider"></span>
+                            <span class="universal-toggle-label">Use Markdown</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Markdown formatting toolbar -->
+                    <div class="markdown-toolbar" id="createMarkdownToolbar" style="display: none; overflow-x: auto; white-space: nowrap; text-align: left;">
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h1" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>1</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h2" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>2</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h3" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>3</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="bold" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="italic" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="underline" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-left" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-left"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-center" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-center"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-right" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-right"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="link" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-link"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="image" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-image"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="line" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-minus"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="code" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-code"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="list-ul" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="list-ol" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="quote" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-quote-left"></i></button>
+                    </div>
+                    
+                    <div class="form-group content-group">
+                        <textarea id="createForumContent" class="form-control content-textarea" rows="8" placeholder="Write your post content here..." required></textarea>
+                    </div>
+                </div>
+                
+                <!-- Comments preview -->
+                <div class="comments-section">
+                    <div class="markdown-preview-container" style="display: none;">
+                        <h3><i class="fas fa-eye"></i> Markdown Preview</h3>
+                        <div class="markdown-preview" id="createMarkdownPreview" style="display: none;">
+                            <div class="placeholder-text">Your formatted content will appear here as you type.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="universal-btn secondary" id="cancelCreateForum">Cancel</button>
+                    <button type="submit" class="universal-btn primary">Create Discussion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Forum Modal -->
+    <div id="editForumModal" class="modal">
+        <div class="modal-content forum-view-preview">
+            <span class="close" id="closeEditModal">&times;</span>
+            <h2>Edit Discussion</h2>
+            
+            <form id="editForumForm">
+                <!-- Preview header that resembles the forum view -->
+                <div class="forum-header">
+                    <div class="form-group title-group">
+                        <input type="text" id="editForumTitle" class="form-control forum-title-input" placeholder="Enter a discussion title..." required>
+                    </div>
+                    
+                    <div class="form-group summary-group">
+                        <input type="text" id="editForumSummary" class="form-control forum-summary-input" placeholder="Enter a brief summary for your discussion (used in list preview)...">
+                    </div>
+                    
+                    <div class="forum-meta">
+                        <span id="editForumAuthor"><i class="fas fa-user"></i> Your Username</span>
+                        <span><i class="fas fa-calendar"></i> Today</span>
+                        <span>
+                            <select id="editForumCategory" class="form-control category-dropdown" required onchange="updateCategoryDisplay(this, 'editCategoryBadge')">
+                                <option value="" disabled>Select a category</option>
+                                <option value="announcements">Announcements</option>
+                                <option value="discussion">General Discussion</option>
+                                <option value="suggestions">Suggestions</option>
+                                <option value="help">Help & Support</option>
+                                <option value="offtopic">Off-Topic</option>
+                            </select>
+                            <span id="editCategoryBadge" class="forum-category"></span>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Content area styled like forum content -->
+                <div class="forum-content">
+                    <!-- Markdown toggle switch -->
+                    <div class="toggle-container">
+                        <label class="universal-toggle">
+                            <input type="checkbox" id="editMarkdownToggle" data-toggle-id="editMarkdown">
+                            <span class="universal-toggle-slider"></span>
+                            <span class="universal-toggle-label">Use Markdown</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Markdown formatting toolbar -->
+                    <div class="markdown-toolbar" id="editMarkdownToolbar" style="display: none; overflow-x: auto; white-space: nowrap; text-align: left;">
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h1" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>1</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h2" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>2</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="h3" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-heading"></i>3</button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="bold" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="italic" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="underline" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-left" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-left"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-center" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-center"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="align-right" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-align-right"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="link" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-link"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="image" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-image"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="line" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-minus"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="code" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-code"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="list-ul" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-list-ul"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="list-ol" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-list-ol"></i></button>
+                        <button type="button" class="universal-btn secondary md-btn" data-md-tag="quote" style="display: inline-block !important; float: none !important; margin: 0 3px !important; padding: 5px 8px !important; height: 32px !important; min-width: auto !important;"><i class="fas fa-quote-left"></i></button>
+                    </div>
+                    
+                    <div class="form-group content-group">
+                        <textarea id="editForumContent" class="form-control content-textarea" rows="8" placeholder="Write your post content here..." required></textarea>
+                    </div>
+                </div>
+                
+                <!-- Comments preview -->
+                <div class="comments-section">
+                    <div class="markdown-preview-container" style="display: none;">
+                        <h3><i class="fas fa-eye"></i> Markdown Preview</h3>
+                        <div class="markdown-preview" id="editMarkdownPreview" style="display: none;">
+                            <div class="placeholder-text">Your formatted content will appear here as you type.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="editForumId">
+                <div class="form-actions">
+                    <button type="button" class="universal-btn secondary" id="cancelEditForum">Cancel</button>
+                    <button type="submit" class="universal-btn primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast container for notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="/js/shared.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/js/toggle-button.js"></script>
+    <script src="/js/forums.js"></script>
+    
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <!-- Common language components -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</body>
+</html>
+
+<style>
+/* Ensure the modal has a scrollbar and proper spacing */
+.forum-view-preview {
+    max-width: 1200px;
+    width: 98%;
+    max-height: 85vh;
+    overflow-y: auto !important; /* Use auto instead of scroll */
+    border-radius: 1rem; /* Match modal border radius */
+    background-color: #1e2233;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Keep the close button visible while scrolling */
+.modal-content .close {
+    position: sticky;
+    top: 0;
+    right: 10px;
+    z-index: 10;
+    float: right;
+    margin-bottom: 10px;
+}
+
+/* Force scrollbar visibility */
+.forum-view-preview::-webkit-scrollbar {
+    width: 8px !important; /* Much thinner scrollbar */
+    background: transparent !important;
+}
+
+.forum-view-preview::-webkit-scrollbar-track {
+    background: transparent !important; /* Completely transparent track */
+    margin: 5px 3px !important;
+}
+
+.forum-view-preview::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15) !important; /* Very subtle light color */
+    border-radius: 20px !important; /* Fully rounded corners */
+    border: none !important;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.forum-view-preview::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3) !important; /* Slightly more visible on hover */
+}
+
+.forum-title-input {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.forum-summary-input {
+    font-size: 1rem;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.category-dropdown {
+    display: inline-block;
+    width: auto;
+    margin-left: 5px;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+/* Removing conflicting textarea styles */
+.content-textarea {
+    min-height: 150px;
+    width: 100%;
+    resize: vertical;
+}
+
+.forum-view-preview .forum-header {
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+}
+
+.comments-preview-placeholder {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    margin-top: 10px;
+}
+
+.placeholder-text {
+    font-style: italic;
+}
+
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.title-group {
+    margin-bottom: 10px;
+}
+
+.content-group {
+    margin-bottom: 20px;
+}
+
+.forum-view-preview .forum-category {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-left: 10px;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.forum-view-preview .forum-category.announcements {
+    background-color: #ff5722;
+}
+
+.forum-view-preview .forum-category.discussion {
+    background-color: #2196f3;
+}
+
+.forum-view-preview .forum-category.suggestions {
+    background-color: #4caf50;
+}
+
+.forum-view-preview .forum-category.help {
+    background-color: #9c27b0;
+}
+
+.forum-view-preview .forum-category.offtopic {
+    background-color: #607d8b;
+}
+</style> 

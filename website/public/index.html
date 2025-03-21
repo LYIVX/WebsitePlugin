@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/universal-button.css">
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
     <!-- Navigation will be loaded by shared.js -->
@@ -28,11 +30,11 @@
                         <div class="hero-content">
                             <p class="hero-subtitle">Join our thriving community and unlock amazing perks with our unique ranks</p>
                             <div class="hero-buttons" style="margin-top: 2rem;">
-                                <a href="/shop.html" class="btn btn-primary">
+                                <a href="/shop.html" class="universal-btn primary">
                                     <i class="fas fa-shopping-cart"></i>
                                     Browse Ranks
                                 </a>
-                                <a href="#features" class="btn btn-secondary">
+                                <a href="#features" class="universal-btn secondary">
                                     <i class="fas fa-star"></i>
                                     View Features
                                 </a>
@@ -114,7 +116,7 @@
                                     </div>
                                     <p class="goal-info">Join our Discord community for updates, events, and to connect with other players</p>
                                     <div class="card-button-container">
-                                        <a href="https://discord.gg/ellrijord" target="_blank" class="btn btn-primary">Join Discord</a>
+                                        <a href="https://discord.gg/ellrijord" target="_blank" class="universal-btn primary">Join Discord</a>
                                     </div>
                                 </div>
                             </div>
@@ -128,7 +130,7 @@
                                     </div>
                                     <p class="goal-info">Connect to our server using the IP: play.enderfall.com</p>
                                     <div class="card-button-container">
-                                        <button id="copyIpBtn" class="btn btn-primary">Copy IP</button>
+                                        <button id="copyIpBtn" class="universal-btn primary">Copy IP</button>
                                     </div>
                                 </div>
                             </div>
@@ -142,7 +144,7 @@
                                     </div>
                                     <p class="goal-info">Browse our selection of ranks and upgrades in our shop</p>
                                     <div class="card-button-container">
-                                        <a href="/shop.html" class="btn btn-primary">Visit Shop</a>
+                                        <a href="/shop.html" class="universal-btn primary">Visit Shop</a>
                                     </div>
                                 </div>
                             </div>
@@ -166,7 +168,7 @@
                             </div>
                         </div>
                         <div id="avatarActions">
-                            <button id="linkAccountBtn" class="btn btn-primary" style="display: none;">
+                            <button id="linkAccountBtn" class="universal-btn primary" style="display: none;">
                                 <i class="fas fa-link"></i> Link Minecraft Account
                             </button>
                             <p class="link-info">Link your Minecraft account in your profile settings to see your avatar here.</p>
@@ -213,7 +215,7 @@
                         </div>
                         <p class="goal-info">Help us reach our monthly server costs!</p>
                         <div class="card-button-container">
-                            <a href="/shop.html" class="btn btn-primary">Support Server</a>
+                            <a href="/shop.html" class="universal-btn primary">Support Server</a>
                         </div>
                     </div>
                 </div>
@@ -226,5 +228,8 @@
     <!-- Load shared JavaScript -->
     <script src="/js/shared.js"></script>
     <script src="/js/index.js"></script>
+    <script src="/js/tooltips.js"></script>
+    <script src="/components/button.html"></script>
+    <script src="/js/universal-button.js"></script>
 </body>
 </html>

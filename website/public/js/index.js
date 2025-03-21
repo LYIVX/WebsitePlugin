@@ -1,4 +1,3 @@
-// Initialize home page functionality
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Initialize any home page functionality here
@@ -18,6 +17,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Setup sidebar scroll behavior
         setupSidebarScroll();
+        
+        // Adjust grid spacing on the home page
+        adjustHomePageGridSpacing();
     } catch (error) {
         console.error('Error initializing home page:', error);
     }
@@ -116,17 +118,29 @@ function loadFeaturedRanks() {
         }
     ];
 
-    // Get the featured ranks container
-    const featuredRanksContainer = document.querySelector('.home-rank-grid');
+    // Get the container element
+    const featuredRanksContainer = document.querySelector('.rank-grid.home-rank-grid');
     if (!featuredRanksContainer) return;
-
-    // Clear existing content
+    
+    // Clear the container
     featuredRanksContainer.innerHTML = '';
-
+    
+    // Check if on mobile
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        featuredRanksContainer.classList.add('rank-grid-mobile');
+    }
+    
     // Add each rank card
     featuredRanks.forEach(rank => {
         const rankCard = document.createElement('div');
         rankCard.className = `rank-card ${formatClassName(rank.name)}`;
+
+        // Create mobile-optimized layout for features
+        const featuresList = rank.features.map(feature => {
+            const iconClass = getFeatureIcon(feature);
+            return `<li><i class="fas ${iconClass}"></i> <span class="feature-text">${feature}</span></li>`;
+        }).join('');
 
         rankCard.innerHTML = `
             <div class="rank-header">
@@ -138,16 +152,40 @@ function loadFeaturedRanks() {
                 <div class="rank-category">${rank.category} Rank</div>
                 <div class="rank-position">${rank.position} Tier</div>
                 <ul class="rank-features">
-                    ${rank.features.map(feature => `
-                        <li><i class="fas fa-check"></i> ${feature}</li>
-                    `).join('')}
+                    ${featuresList}
                 </ul>
-                <button class="btn btn-primary" onclick="window.location.href='/shop.html'">Purchase</button>
+                <button class="universal-btn secondary" onclick="window.location.href='/shop.html'">Purchase</button>
             </div>
         `;
 
         featuredRanksContainer.appendChild(rankCard);
     });
+    
+    // Add feature tooltips for mobile
+    if (isMobile) {
+        const featureItems = featuredRanksContainer.querySelectorAll('.rank-features li');
+        featureItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all items
+                featureItems.forEach(i => i.classList.remove('active'));
+                // Add active class to clicked item
+                this.classList.add('active');
+            });
+        });
+    }
+    
+    // Add resize listener for responsive adjustments
+    window.addEventListener('resize', () => {
+        const isMobileNow = window.innerWidth <= 768;
+        if (isMobileNow) {
+            featuredRanksContainer.classList.add('rank-grid-mobile');
+        } else {
+            featuredRanksContainer.classList.remove('rank-grid-mobile');
+        }
+    });
+    
+    // Dispatch event to notify that ranks have been loaded
+    document.dispatchEvent(new CustomEvent('ranksLoaded'));
 }
 
 // Helper function to format class names
@@ -193,114 +231,263 @@ function fallbackCopyTextToClipboard(text) {
 
 // Setup avatar preview functionality
 function setupAvatarPreview() {
-    const avatarPreview = document.getElementById('avatarPreview');
-    const previewControls = document.getElementById('previewControls');
-    const previewRankSelect = document.getElementById('previewRankSelect');
-    
-    if (!avatarPreview) return;
-    
-    // Check if user is logged in and has a linked Minecraft account
-    checkLinkedMinecraftAccount();
-    
-    // Setup rank preview selector
-    if (previewRankSelect) {
-        previewRankSelect.addEventListener('change', function() {
-            updateAvatarPreview(this.value);
-        });
-    }
-}
-
-// Check if the user has a linked Minecraft account
-async function checkLinkedMinecraftAccount() {
-    const avatarPreview = document.getElementById('avatarPreview');
     const linkAccountBtn = document.getElementById('linkAccountBtn');
     const previewControls = document.getElementById('previewControls');
+    const previewRankSelect = document.getElementById('previewRankSelect');
+    const avatarPreview = document.getElementById('avatarPreview');
     const linkInfo = document.querySelector('.link-info');
-    
-    try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-            const user = await response.json();
-            
-            if (user && user.minecraft_username) {
-                // User has a linked Minecraft account
-                if (linkInfo) linkInfo.style.display = 'none';
-                if (linkAccountBtn) linkAccountBtn.style.display = 'none';
-                if (previewControls) previewControls.style.display = 'block';
-                
-                // Show the user's Minecraft avatar
-                showMinecraftAvatar(user.minecraft_username);
-            } else {
-                // User is logged in but doesn't have a linked Minecraft account
-                if (linkInfo) {
-                    linkInfo.textContent = 'Link your Minecraft account in your profile settings to see your avatar here.';
-                    linkInfo.style.display = 'block';
-                }
-                
-                if (linkAccountBtn) {
-                    linkAccountBtn.textContent = 'Link Minecraft Account';
-                    linkAccountBtn.style.display = 'flex';
-                    linkAccountBtn.onclick = () => window.location.href = '/profile.html';
-                }
-                
-                if (previewControls) previewControls.style.display = 'none';
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+
+    console.log('Setting up avatar preview');
+
+    if (!avatarPreview) return;
+
+    // Initialize the rank select dropdown
+    if (previewRankSelect) {
+        // Preview rank select change handler
+        previewRankSelect.addEventListener('change', (event) => {
+            console.log('Rank select changed to:', event.target.value);
+            updateAvatarPreview(event.target.value);
+        });
+    }
+
+    // Wait a short delay to ensure auth state is initialized
+    setTimeout(() => {
+        // Check if user is logged out explicitly
+        const loggedOut = localStorage.getItem('logged_out') === 'true';
+        if (loggedOut) {
+            // User is explicitly logged out, show login UI
+            if (linkAccountBtn) {
+                linkAccountBtn.style.display = 'flex';
+                linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
+                linkAccountBtn.onclick = () => window.location.href = '/api/auth/discord';
             }
-        } else {
-            // User is not logged in
             if (linkInfo) {
                 linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';
                 linkInfo.style.display = 'block';
             }
-            
+            if (previewControls) previewControls.style.display = 'none';
+            return;
+        }
+
+        // Check if we have a user menu (indicating logged in state)
+        const userMenu = document.querySelector('.user-menu');
+        const isUserMenuVisible = userMenu && 
+            (window.getComputedStyle(userMenu).display !== 'none' ||
+             userMenu.offsetParent !== null);
+
+        if (isUserMenuVisible) {
+            // User is logged in, fetch their data from the API
+            fetch('/api/user')
+                .then(response => response.json())
+                .then(userData => {
+                    if (userData.minecraft_username) {
+                        // User has a linked Minecraft account, show the avatar
+                        showMinecraftAvatar(userData.minecraft_username);
+                        if (previewControls) previewControls.style.display = 'block';
+                        if (linkAccountBtn) linkAccountBtn.style.display = 'none';
+                        if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+                        if (linkInfo) linkInfo.style.display = 'none';
+                    } else {
+                        // User is logged in but doesn't have a linked Minecraft account
+                        if (linkAccountBtn) {
+                            linkAccountBtn.style.display = 'flex';
+                            linkAccountBtn.innerHTML = '<i class="fas fa-link"></i> Link Minecraft Account';
+                            linkAccountBtn.onclick = () => {
+                                window.location.href = '/profile.html?tab=settings&action=link-minecraft';
+                            };
+                        }
+                        if (linkInfo) {
+                            linkInfo.textContent = 'Link your Minecraft account in your profile settings to see your avatar here.';
+                            linkInfo.style.display = 'block';
+                        }
+                        if (previewControls) previewControls.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                    // Show error state
+                    if (linkAccountBtn) {
+                        linkAccountBtn.style.display = 'flex';
+                        linkAccountBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error Loading Data';
+                    }
+                    if (linkInfo) {
+                        linkInfo.textContent = 'There was an error loading your profile data. Please try again later.';
+                        linkInfo.style.display = 'block';
+                    }
+                    if (previewControls) previewControls.style.display = 'none';
+                });
+        } else {
+            console.log('User appears to be logged out');
+            // User is not logged in with Discord
             if (linkAccountBtn) {
-                linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
                 linkAccountBtn.style.display = 'flex';
+                linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
                 linkAccountBtn.onclick = () => window.location.href = '/api/auth/discord';
             }
-            
+            if (linkInfo) {
+                linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';
+                linkInfo.style.display = 'block';
+            }
             if (previewControls) previewControls.style.display = 'none';
         }
-    } catch (error) {
-        console.error('Error checking linked Minecraft account:', error);
-    }
+    }, 500); // Add delay to ensure DOM is fully loaded
 }
 
-// Show the user's Minecraft avatar
+// Show Minecraft avatar with the given username
 function showMinecraftAvatar(username = 'MHF_Steve') {
+    if (!username || username.trim() === '') {
+        console.warn('No username provided for Minecraft avatar');
+        username = 'MHF_Steve';
+    }
+    
+    console.log('Showing Minecraft avatar for:', username);
+    
     const avatarPreview = document.getElementById('avatarPreview');
     if (!avatarPreview) return;
     
-    // Clear existing content
+    // Clear placeholder
     avatarPreview.innerHTML = '';
     
+    // Create name tag
+    const nameTag = document.createElement('div');
+    nameTag.className = 'minecraft-nametag';
+    nameTag.innerHTML = `<span class="username">${username}</span>`;
+    nameTag.id = 'minecraftNameTag';
+    
     // Create avatar image
-    const avatarImg = document.createElement('img');
-    avatarImg.id = 'avatarImage';
-    avatarImg.src = `https://mc-heads.net/body/${username}/100`;
-    avatarImg.alt = `${username}'s Minecraft Avatar`;
+    const img = document.createElement('img');
+    img.src = `https://mc-heads.net/body/${username}`;
+    img.alt = 'Minecraft Avatar';
+    img.id = 'avatarImage';
+    img.onerror = () => {
+        // If the avatar fails to load, use a default avatar
+        img.src = 'https://mc-heads.net/body/MHF_Steve';
+    };
     
-    // Add to preview
-    avatarPreview.appendChild(avatarImg);
+    avatarPreview.appendChild(nameTag);
+    avatarPreview.appendChild(img);
     
-    // Set initial rank preview
-    const previewRankSelect = document.getElementById('previewRankSelect');
-    if (previewRankSelect) {
-        updateAvatarPreview(previewRankSelect.value);
+    // Show the preview controls
+    const previewControls = document.getElementById('previewControls');
+    if (previewControls) {
+        previewControls.style.display = 'block';
     }
+    
+    // Hide the placeholder and link info
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    const linkInfo = document.querySelector('.link-info');
+    if (avatarPlaceholder) avatarPlaceholder.style.display = 'none';
+    if (linkInfo) linkInfo.style.display = 'none';
+    
+    // Hide the link account button
+    const linkAccountBtn = document.getElementById('linkAccountBtn');
+    if (linkAccountBtn) linkAccountBtn.style.display = 'none';
+    
+    // Get the current selected rank from the dropdown
+    const previewRankSelect = document.getElementById('previewRankSelect');
+    let selectedRank = 'none';
+    if (previewRankSelect && previewRankSelect.value) {
+        selectedRank = previewRankSelect.value;
+    }
+    
+    // Initialize with the selected rank or no rank
+    setTimeout(() => {
+        updateAvatarPreview(selectedRank);
+    }, 100);
+    
+    console.log('Minecraft avatar displayed for:', username);
 }
 
 // Update avatar preview with selected rank
 function updateAvatarPreview(rankId) {
-    const avatarImg = document.getElementById('avatarImage');
-    if (!avatarImg) return;
+    const avatarImage = document.getElementById('avatarImage');
+    const nameTag = document.getElementById('minecraftNameTag');
+    if (!avatarImage || !nameTag) return;
     
-    // Remove all existing rank classes
-    avatarImg.className = '';
+    console.log('Updating avatar preview with rank:', rankId);
     
-    // Add the selected rank class if not 'none'
-    if (rankId && rankId !== 'none') {
-        avatarImg.classList.add(`rank-${rankId}`);
+    // Get username from the name tag
+    let username = 'MHF_Steve';
+    if (nameTag && nameTag.querySelector('.username')) {
+        username = nameTag.querySelector('.username').textContent;
     }
+    
+    // Remove all previous rank preview classes
+    avatarImage.className = '';
+    
+    // Reset styles
+    avatarImage.style.boxShadow = 'none';
+    avatarImage.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+    avatarImage.style.borderRadius = 'var(--radius-md)';
+    
+    // Add a class to the avatar based on the rank
+    if (rankId !== 'none') {
+        // Apply the CSS class for the rank preview
+        avatarImage.classList.add(`${rankId}-preview`);
+        
+        // Get rank colors for direct style application
+        const rankColors = {
+            'shadow-enchanter': 'var(--rank-shadow)',
+            'void-walker': 'var(--rank-void)',
+            'ethereal-warden': 'var(--rank-ethereal)',
+            'astral-guardian': 'var(--rank-astral)',
+            'citizen': 'var(--rank-citizen)',
+            'merchant': 'var(--rank-merchant)',
+            'councilor': 'var(--rank-councilor)',
+            'mayor': 'var(--rank-mayor)',
+            'governor': 'var(--rank-governor)',
+            'noble': 'var(--rank-noble)',
+            'duke': 'var(--rank-duke)',
+            'king': 'var(--rank-king)',
+            'divine-ruler': 'var(--rank-divine)'
+        };
+        
+        // Apply styles directly to ensure they take effect
+        const rankColor = rankColors[rankId];
+        if (rankColor) {
+            avatarImage.style.boxShadow = `0 0 15px 5px ${rankColor}`;
+            avatarImage.style.border = `2px solid ${rankColor}`;
+            avatarImage.style.borderRadius = '5px';
+        }
+    }
+    
+    // Update name tag with rank prefix
+    if (nameTag) {
+        if (rankId === 'none') {
+            nameTag.innerHTML = `<span class="username">${username}</span>`;
+        } else {
+            // Get rank display name
+            const rankDisplayNames = {
+                'shadow-enchanter': 'Shadow',
+                'void-walker': 'Void',
+                'ethereal-warden': 'Ethereal',
+                'astral-guardian': 'Astral',
+                'citizen': 'Citizen',
+                'merchant': 'Merchant',
+                'councilor': 'Councilor',
+                'mayor': 'Mayor',
+                'governor': 'Governor',
+                'noble': 'Noble',
+                'duke': 'Duke',
+                'king': 'King',
+                'divine-ruler': 'Divine'
+            };
+            
+            const rankName = rankDisplayNames[rankId] || rankId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Update name tag with rank prefix
+            nameTag.innerHTML = `<span class="rank-prefix ${rankId}-prefix">[${rankName}]</span> <span class="username">${username}</span>`;
+        }
+    }
+    
+    // Update the dropdown to match the selected rank
+    const previewRankSelect = document.getElementById('previewRankSelect');
+    if (previewRankSelect && previewRankSelect.value !== rankId) {
+        previewRankSelect.value = rankId;
+    }
+    
+    console.log('Avatar preview updated with rank:', rankId);
 }
 
 // Update payment goal display
@@ -332,136 +519,53 @@ async function updatePaymentGoal() {
 
 // Setup sidebar scroll behavior
 function setupSidebarScroll() {
-    const sidebar = document.querySelector('.avatar-preview-section');
-    const shopContent = document.querySelector('.shop-content');
-    const firstTabBar = document.querySelector('.shop-content .tab-bar:first-child');
-    const lastTabBar = document.querySelector('.shop-content .tab-bar:last-child');
+    console.log('Setting up home page sidebar as static (non-scrolling)');
     
-    if (!sidebar || !shopContent || !firstTabBar || !lastTabBar) {
-        console.error('Missing required elements for sidebar scroll behavior');
+    const sidebar = document.querySelector('.avatar-preview-section');
+    
+    if (!sidebar) {
+        console.error('Missing sidebar element for home page');
         return;
     }
     
-    // Store the last scroll position to prevent unnecessary updates
-    let lastScrollY = window.scrollY;
-    let ticking = false;
+    // Set sidebar to be static with appropriate styling
+    sidebar.style.position = 'static'; // Static positioning so it scrolls with page
+    sidebar.style.width = '100%'; // Full width of its container
+    sidebar.style.maxWidth = '280px'; // Match the previous fixed width
+    sidebar.style.margin = '0'; // No margin
+    sidebar.style.marginTop = '24px'; // Add top margin to fix positioning
+    sidebar.style.maxHeight = 'none'; // Remove max height restriction
+    sidebar.style.overflowY = 'visible'; // Allow content to determine height
     
-    // Function to ensure elements are loaded before positioning
-    function ensureInitialPosition() {
-        // Force an immediate position update
-        updateSidebarPosition();
-        
-        // Wait a short moment for any dynamic content to settle
-        setTimeout(updateSidebarPosition, 100);
-        
-        // Also update when all resources are loaded
-        if (document.readyState === 'complete') {
-            updateSidebarPosition();
-        } else {
-            window.addEventListener('load', updateSidebarPosition);
-        }
+    // Remove any fixed positioning styles
+    sidebar.style.top = 'auto';
+    sidebar.style.right = 'auto';
+    
+    console.log('Home page sidebar set to static positioning');
+}
+
+// Adjust grid spacing on the home page to match the sidebar spacing
+function adjustHomePageGridSpacing() {
+    // Target all tab-bar sections on the home page
+    const tabSections = document.querySelectorAll('.home-page .tab-bar');
+    if (!tabSections || tabSections.length === 0) return;
+    
+    // Add margin to all sections except the first one to create consistent spacing
+    for (let i = 1; i < tabSections.length; i++) {
+        tabSections[i].style.marginTop = '0px';
     }
     
-    // Call initial position setup
-    ensureInitialPosition();
-    
-    // Update on scroll with throttling
-    window.addEventListener('scroll', () => {
-        lastScrollY = window.scrollY;
-        if (!ticking) {
-            requestAnimationFrame(() => {
-                updateSidebarPosition();
-                ticking = false;
-            });
-            ticking = true;
-        }
+    // Set consistent gap for grids - using a smaller gap to match the image
+    const grids = document.querySelectorAll('.home-page .grid');
+    grids.forEach(grid => {
+        grid.style.gap = '16px';
     });
     
-    // Update on resize
-    let resizeTimeout;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            updateSidebarPosition();
-        }, 100);
-    });
-    
-    function updateSidebarPosition() {
-        const sidebar = document.querySelector('.avatar-preview-section');
-        const shopContent = document.querySelector('.shop-content');
-        const firstTabBar = document.querySelector('.shop-content .tab-bar:first-child');
-        const lastTabBar = document.querySelector('.shop-content .tab-bar:last-child');
-        const paymentGoal = document.querySelector('.server-payment-goal');
-        
-        if (!sidebar || !shopContent || !firstTabBar || !lastTabBar) return;
-        
-        // If on mobile, don't apply fixed positioning
-        if (window.innerWidth <= 1024) {
-            sidebar.style.position = 'static';
-            sidebar.style.width = '100%';
-            sidebar.style.maxWidth = '320px';
-            sidebar.style.margin = '0 auto';
-            return;
-        }
-        
-        // Get the dimensions
-        const firstTabBarRect = firstTabBar.getBoundingClientRect();
-        const lastTabBarRect = lastTabBar.getBoundingClientRect();
-        const sidebarRect = sidebar.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        const paymentGoalRect = paymentGoal ? paymentGoal.getBoundingClientRect() : lastTabBarRect;
-        
-        // If the sidebar is taller than the viewport, don't apply fixed positioning
-        if (sidebarRect.height > viewportHeight - 20) {
-            sidebar.style.position = 'static';
-            sidebar.style.width = '100%';
-            sidebar.style.maxWidth = '280px';
-            sidebar.style.margin = '0 auto';
-            return;
-        }
-        
-        // Reset to fixed positioning
-        sidebar.style.position = 'fixed';
-        sidebar.style.width = '280px';
-        sidebar.style.margin = '0';
-        
-        // Set minimum top position
-        const minTopPosition = 80;
-        
-        // Calculate the bottom boundary including the payment goal section
-        const gridBottom = Math.min(paymentGoalRect.bottom, lastTabBarRect.bottom);
-        const gridTop = firstTabBarRect.top;
-        
-        // Calculate position
-        let topPosition;
-        
-        // If we're scrolled to or past the grid's bottom
-        if (gridBottom <= viewportHeight) {
-            // Lock to grid bottom
-            topPosition = gridBottom - sidebarRect.height;
-        }
-        // If we're at the top of the grid
-        else if (gridTop >= minTopPosition) {
-            topPosition = gridTop;
-        }
-        // Default position while scrolling within the grid
-        else {
-            topPosition = minTopPosition;
-        }
-        
-        // Ensure position stays within grid bounds
-        const maxTopPosition = gridBottom - sidebarRect.height;
-        topPosition = Math.min(topPosition, maxTopPosition);
-        topPosition = Math.max(minTopPosition, topPosition);
-        
-        // Apply the position
-        sidebar.style.top = `${Math.round(topPosition)}px`;
-        
-        // Adjust right position based on layout width
-        if (window.innerWidth > 1400) {
-            sidebar.style.right = `calc((100% - 1400px) / 2 + var(--spacing-md))`;
-        } else {
-            sidebar.style.right = 'var(--spacing-md)';
-        }
+    // Set gap for featured ranks grid
+    const rankGrid = document.querySelector('.home-page .home-rank-grid');
+    if (rankGrid) {
+        rankGrid.style.gap = '16px';
     }
+    
+    console.log('Home page grid spacing adjusted');
 } 

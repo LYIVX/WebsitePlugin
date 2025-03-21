@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Button Component</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/universal-button.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Demo page specific styles */
+        .demo-section {
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background-color: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+        
+        .demo-title {
+            margin-bottom: 1rem;
+            color: var(--text-white);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .demo-code {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+        
+        .demo-code code {
+            color: var(--text-light);
+            font-family: monospace;
+        }
+        
+        .demo-section-title {
+            margin-bottom: 1rem;
+            color: var(--text-white);
+            font-size: 1.2rem;
+        }
+        
+        .spacer {
+            height: 2rem;
+        }
+    </style>
+</head>
+<body class="has-navbar">
+    <!-- Import the navbar component -->
+    <div id="navbar-container"></div>
+    
+    <main class="container">
+        <section class="page-header">
+            <h1>Universal Button Component</h1>
+            <p>A standardized button component for consistent UI across the website.</p>
+        </section>
+        
+        <!-- Regular HTML Usage -->
+        <section class="demo-section">
+            <h2 class="demo-title">HTML Usage</h2>
+            <p>Use these classes with regular HTML elements:</p>
+            
+            <h3 class="demo-section-title">Button Types</h3>
+            <div class="demo-grid">
+                <button class="universal-btn primary">Primary Button</button>
+                <button class="universal-btn secondary">Secondary Button</button>
+                <button class="universal-btn danger">Danger Button</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;button class="universal-btn primary"&gt;Primary Button&lt;/button&gt;<br>
+&lt;button class="universal-btn secondary"&gt;Secondary Button&lt;/button&gt;<br>
+&lt;button class="universal-btn danger"&gt;Danger Button&lt;/button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Button Sizes</h3>
+            <div class="demo-grid">
+                <button class="universal-btn primary small">Small Button</button>
+                <button class="universal-btn primary medium">Medium Button</button>
+                <button class="universal-btn primary large">Large Button</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;button class="universal-btn primary small"&gt;Small Button&lt;/button&gt;<br>
+&lt;button class="universal-btn primary medium"&gt;Medium Button&lt;/button&gt;<br>
+&lt;button class="universal-btn primary large"&gt;Large Button&lt;/button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">With Icons</h3>
+            <div class="demo-grid">
+                <button class="universal-btn primary"><i class="fas fa-edit"></i> Edit</button>
+                <button class="universal-btn secondary"><i class="fas fa-save"></i> Save</button>
+                <button class="universal-btn danger"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;button class="universal-btn primary"&gt;&lt;i class="fas fa-edit"&gt;&lt;/i&gt; Edit&lt;/button&gt;<br>
+&lt;button class="universal-btn secondary"&gt;&lt;i class="fas fa-save"&gt;&lt;/i&gt; Save&lt;/button&gt;<br>
+&lt;button class="universal-btn danger"&gt;&lt;i class="fas fa-trash"&gt;&lt;/i&gt; Delete&lt;/button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Disabled State</h3>
+            <div class="demo-grid">
+                <button class="universal-btn primary" disabled>Disabled</button>
+                <button class="universal-btn secondary" disabled>Disabled</button>
+                <button class="universal-btn danger" disabled>Disabled</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;button class="universal-btn primary" disabled&gt;Disabled&lt;/button&gt;<br>
+&lt;button class="universal-btn secondary" disabled&gt;Disabled&lt;/button&gt;<br>
+&lt;button class="universal-btn danger" disabled&gt;Disabled&lt;/button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Link Buttons</h3>
+            <div class="demo-grid">
+                <a href="#" class="universal-btn primary">Link Button</a>
+                <a href="#" class="universal-btn secondary">Link Button</a>
+                <a href="#" class="universal-btn danger">Link Button</a>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;a href="#" class="universal-btn primary"&gt;Link Button&lt;/a&gt;<br>
+&lt;a href="#" class="universal-btn secondary"&gt;Link Button&lt;/a&gt;<br>
+&lt;a href="#" class="universal-btn danger"&gt;Link Button&lt;/a&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Full Width</h3>
+            <div style="max-width: 400px; margin-bottom: 1rem;">
+                <button class="universal-btn primary full-width">Full Width Button</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;button class="universal-btn primary full-width"&gt;Full Width Button&lt;/button&gt;
+                </code>
+            </div>
+        </section>
+        
+        <!-- Web Component Usage -->
+        <section class="demo-section">
+            <h2 class="demo-title">Web Component Usage</h2>
+            <p>Use the custom &lt;universal-button&gt; element for more functionality:</p>
+            
+            <h3 class="demo-section-title">Button Types</h3>
+            <div class="demo-grid">
+                <universal-button text="Primary Button" type="primary"></universal-button>
+                <universal-button text="Secondary Button" type="secondary"></universal-button>
+                <universal-button text="Danger Button" type="danger"></universal-button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;universal-button text="Primary Button" type="primary"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Secondary Button" type="secondary"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Danger Button" type="danger"&gt;&lt;/universal-button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Button Sizes</h3>
+            <div class="demo-grid">
+                <universal-button text="Small Button" size="small"></universal-button>
+                <universal-button text="Medium Button" size="medium"></universal-button>
+                <universal-button text="Large Button" size="large"></universal-button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;universal-button text="Small Button" size="small"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Medium Button" size="medium"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Large Button" size="large"&gt;&lt;/universal-button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">With Icons</h3>
+            <div class="demo-grid">
+                <universal-button text="Edit" type="primary" icon="fas fa-edit"></universal-button>
+                <universal-button text="Save" type="secondary" icon="fas fa-save"></universal-button>
+                <universal-button text="Delete" type="danger" icon="fas fa-trash"></universal-button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;universal-button text="Edit" type="primary" icon="fas fa-edit"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Save" type="secondary" icon="fas fa-save"&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Delete" type="danger" icon="fas fa-trash"&gt;&lt;/universal-button&gt;
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Disabled State</h3>
+            <div class="demo-grid">
+                <universal-button text="Disabled" type="primary" disabled></universal-button>
+                <universal-button text="Disabled" type="secondary" disabled></universal-button>
+                <universal-button text="Disabled" type="danger" disabled></universal-button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+&lt;universal-button text="Disabled" type="primary" disabled&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Disabled" type="secondary" disabled&gt;&lt;/universal-button&gt;<br>
+&lt;universal-button text="Disabled" type="danger" disabled&gt;&lt;/universal-button&gt;
+                </code>
+            </div>
+        </section>
+        
+        <!-- JavaScript Usage -->
+        <section class="demo-section">
+            <h2 class="demo-title">JavaScript Usage</h2>
+            <p>Create buttons programmatically:</p>
+            
+            <h3 class="demo-section-title">Dynamic Buttons</h3>
+            <div id="dynamicButtons" class="demo-grid">
+                <!-- Buttons will be inserted here -->
+            </div>
+            
+            <div class="demo-code">
+                <code>
+// Create a primary button with an icon
+const primaryBtn = UniversalButtonUtil.createButton({
+    text: 'Dynamic Button',
+    type: 'primary',
+    icon: 'fas fa-star',
+    onClick: () => alert('Button clicked!')
+});
+
+// Create a link button
+const linkBtn = UniversalButtonUtil.createLinkButton({
+    text: 'Link Button',
+    href: '#',
+    type: 'secondary',
+    icon: 'fas fa-link'
+});
+
+// Append to container
+document.getElementById('dynamicButtons').appendChild(primaryBtn);
+document.getElementById('dynamicButtons').appendChild(linkBtn);
+                </code>
+            </div>
+            
+            <h3 class="demo-section-title">Update Existing Button</h3>
+            <div id="updateButtonDemo" style="margin-bottom: 1rem;">
+                <button id="targetButton" class="universal-btn primary">Original Button</button>
+                <div class="spacer"></div>
+                <button id="updateButton" class="universal-btn secondary">Update Button</button>
+            </div>
+            
+            <div class="demo-code">
+                <code>
+// Get the target button
+const targetButton = document.getElementById('targetButton');
+
+// Button to trigger the update
+document.getElementById('updateButton').addEventListener('click', () => {
+    UniversalButtonUtil.updateButton(targetButton, {
+        text: 'Updated Button',
+        type: 'danger',
+        icon: 'fas fa-check',
+        onClick: () => alert('Updated button clicked!')
+    });
+});
+                </code>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Import the footer component -->
+    <div id="footer-container"></div>
+    
+    <!-- Import the button component -->
+    <script src="/components/button.html"></script>
+    <script src="/js/universal-button.js"></script>
+    
+    <script>
+        // Load the navbar and footer components
+        fetch('/components/nav.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navbar-container').innerHTML = html;
+            });
+            
+        fetch('/components/footer.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('footer-container').innerHTML = html;
+            });
+            
+        // JavaScript examples
+        document.addEventListener('DOMContentLoaded', () => {
+            // Create dynamic buttons
+            const primaryBtn = UniversalButtonUtil.createButton({
+                text: 'Dynamic Button',
+                type: 'primary',
+                icon: 'fas fa-star',
+                onClick: () => alert('Button clicked!')
+            });
+            
+            const linkBtn = UniversalButtonUtil.createLinkButton({
+                text: 'Link Button',
+                href: '#',
+                type: 'secondary',
+                icon: 'fas fa-link'
+            });
+            
+            // Append to container
+            document.getElementById('dynamicButtons').appendChild(primaryBtn);
+            document.getElementById('dynamicButtons').appendChild(linkBtn);
+            
+            // Update button example
+            const targetButton = document.getElementById('targetButton');
+            document.getElementById('updateButton').addEventListener('click', () => {
+                UniversalButtonUtil.updateButton(targetButton, {
+                    text: 'Updated Button',
+                    type: 'danger',
+                    icon: 'fas fa-check',
+                    onClick: () => alert('Updated button clicked!')
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

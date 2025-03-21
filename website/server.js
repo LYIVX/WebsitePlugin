@@ -6,6 +6,8 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const path = require('path');
+const commentsRouter = require('./routes/comments');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -53,6 +55,9 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Mount routers
+app.use('/api/comments', commentsRouter(supabase));
 
 // Passport configuration
 passport.serializeUser((user, done) => done(null, user));
@@ -157,7 +162,7 @@ app.get('/auth/logout', (req, res) => {
     });
 });
 
-// Auth check middleware
+// Auth middleware for protected routes
 const isAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
@@ -165,25 +170,651 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ error: 'Not authenticated' });
 };
 
-// API Routes
-app.get('/api/user', isAuthenticated, (req, res) => {
+// Forum routes
+// Get all forums
+app.get('/api/forums', async (req, res) => {
     try {
-        const user = {
-            id: req.user.id,
-            discord_id: req.user.discord_id,
-            username: req.user.username,
-            email: req.user.email,
-            avatar: req.user.avatar,
-            minecraft_username: req.user.minecraft_username,
-            email_notifications: req.user.email_notifications,
-            discord_notifications: req.user.discord_notifications,
-            created_at: req.user.created_at,
-            discriminator: req.user.discriminator
+        let query = supabase
+            .from('forums')
+            .select(`
+                id,
+                title,
+                content,
+                summary,
+                category,
+                views,
+                markdown,
+                created_at,
+                forum_users:user_id (
+                    id, 
+                    username, 
+                    avatar,
+                    discord_id
+                ),
+                comment_count:forum_comments(count)
+            `)
+            .order('created_at', { ascending: false });
+
+        // Filter by category if provided
+        if (req.query.category && req.query.category !== 'all') {
+            query = query.eq('category', req.query.category);
+        }
+
+        // Search if query provided
+        if (req.query.search) {
+            query = query.or(`title.ilike.%${req.query.search}%,content.ilike.%${req.query.search}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Error fetching forums:', error);
+            return res.status(500).json({ error: 'Failed to fetch forums' });
+        }
+
+        // Format the response
+        const forums = data.map(forum => ({
+            id: forum.id,
+            title: forum.title,
+            content: forum.content,
+            summary: forum.summary,
+            category: forum.category,
+            views: forum.views,
+            markdown: forum.markdown || false,
+            created_at: forum.created_at,
+            updated_at: forum.updated_at,
+            user_id: forum.forum_users?.id,
+            username: forum.forum_users?.username,
+            avatar: forum.forum_users?.avatar,
+            discord_id: forum.forum_users?.discord_id,
+            comment_count: forum.comment_count[0]?.count || 0
+        }));
+
+        res.json(forums);
+    } catch (error) {
+        console.error('Error processing forums request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get a specific forum
+app.get('/api/forums/:id', async (req, res) => {
+    try {
+        const forumId = req.params.id;
+        
+        // Increment view counter
+        await supabase
+            .from('forums')
+            .update({ views: supabase.rpc('increment', { x: 1 }) })
+            .eq('id', forumId);
+        
+        // Get forum with user info
+        const { data, error } = await supabase
+            .from('forums')
+            .select(`
+                id,
+                title,
+                content,
+                summary,
+                category,
+                views,
+                markdown,
+                created_at,
+                updated_at,
+                forum_users:user_id (id, username, avatar)
+            `)
+            .eq('id', forumId)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching forum:', error);
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        // Format the response and convert IDs to strings
+        const forum = {
+            id: String(data.id),
+            title: data.title,
+            content: data.content,
+            summary: data.summary,
+            category: data.category,
+            views: data.views,
+            markdown: data.markdown || false,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
+            user_id: data.forum_users ? String(data.forum_users.id) : null,
+            username: data.forum_users?.username,
+            avatar: data.forum_users?.avatar
         };
+        
+        console.log('Forum data with string IDs:', {
+            id: forum.id,
+            user_id: forum.user_id,
+            idTypes: {
+                id: typeof forum.id,
+                user_id: typeof forum.user_id
+            }
+        });
+        
+        res.json(forum);
+    } catch (error) {
+        console.error('Error processing forum request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Create a new forum
+app.post('/api/forums', isAuthenticated, async (req, res) => {
+    try {
+        const { title, summary, content, category, markdown } = req.body;
+        
+        if (!title || !content || !category) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // First, ensure the authenticated user has a forum_users record
+        let forumUserId;
+        
+        // Check if the user already has a forum_users record
+        const { data: existingForumUser, error: forumUserError } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', req.user.username)
+            .maybeSingle();
+            
+        if (forumUserError) {
+            console.error('Error checking forum user:', forumUserError);
+            return res.status(500).json({ error: 'Failed to verify forum user' });
+        }
+        
+        if (existingForumUser) {
+            forumUserId = existingForumUser.id;
+            
+            // Update the user's avatar and discord_id if they've changed
+            await supabase
+                .from('forum_users')
+                .update({
+                    avatar: req.user.avatar,
+                    discord_id: req.user.discord_id
+                })
+                .eq('id', forumUserId);
+        } else {
+            // Create a new forum_users record
+            const { data: newForumUser, error: createForumUserError } = await supabase
+                .from('forum_users')
+                .insert({
+                    username: req.user.username,
+                    email: req.user.email,
+                    avatar: req.user.avatar,
+                    discord_id: req.user.discord_id
+                })
+                .select('id')
+                .single();
+                
+            if (createForumUserError) {
+                console.error('Error creating forum user:', createForumUserError);
+                return res.status(500).json({ error: 'Failed to create forum user' });
+            }
+            
+            forumUserId = newForumUser.id;
+        }
+        
+        // Now create the forum with the forum_users id
+        const { data, error } = await supabase
+            .from('forums')
+            .insert([
+                {
+                    title,
+                    summary,
+                    content,
+                    category,
+                    user_id: forumUserId,
+                    views: 0,
+                    markdown: markdown || false
+                }
+            ])
+            .select()
+            .single();
+        
+        if (error) {
+            console.error('Error creating forum:', error);
+            return res.status(500).json({ error: 'Failed to create forum' });
+        }
+        
+        res.status(201).json(data);
+    } catch (error) {
+        console.error('Error processing create forum request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Update a forum
+app.put('/api/forums/:id', isAuthenticated, async (req, res) => {
+    try {
+        const forumId = req.params.id;
+        const { title, summary, content, category, markdown } = req.body;
+        
+        if (!title || !content || !category) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+        
+        // Get the forum_user_id for the authenticated user
+        const { data: forumUser, error: forumUserError } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', req.user.username)
+            .maybeSingle();
+            
+        if (forumUserError || !forumUser) {
+            console.error('Error finding forum user:', forumUserError);
+            return res.status(404).json({ error: 'Forum user not found' });
+        }
+        
+        // Check if user is the forum author
+        const { data: forum, error: forumError } = await supabase
+            .from('forums')
+            .select('user_id')
+            .eq('id', forumId)
+            .single();
+        
+        if (forumError) {
+            console.error('Error fetching forum for update:', forumError);
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        if (forum.user_id !== forumUser.id) {
+            return res.status(403).json({ error: 'Not authorized to update this forum' });
+        }
+        
+        // Update the forum
+        const { data, error } = await supabase
+            .from('forums')
+            .update({ title, summary, content, category, markdown })
+            .eq('id', forumId)
+            .select()
+            .single();
+        
+        if (error) {
+            console.error('Error updating forum:', error);
+            return res.status(500).json({ error: 'Failed to update forum' });
+        }
+        
+        res.json(data);
+    } catch (error) {
+        console.error('Error processing update forum request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Delete a forum
+app.delete('/api/forums/:id', isAuthenticated, async (req, res) => {
+    try {
+        const forumId = req.params.id;
+        
+        // Get the forum_user_id for the authenticated user
+        const { data: forumUser, error: forumUserError } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', req.user.username)
+            .maybeSingle();
+            
+        if (forumUserError || !forumUser) {
+            console.error('Error finding forum user:', forumUserError);
+            return res.status(404).json({ error: 'Forum user not found' });
+        }
+        
+        // Check if user is the forum author
+        const { data: forum, error: forumError } = await supabase
+            .from('forums')
+            .select('user_id')
+            .eq('id', forumId)
+            .single();
+        
+        if (forumError) {
+            console.error('Error fetching forum for deletion:', forumError);
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        if (forum.user_id !== forumUser.id) {
+            return res.status(403).json({ error: 'Not authorized to delete this forum' });
+        }
+        
+        // Delete all comments first
+        const { error: commentsError } = await supabase
+            .from('forum_comments')
+            .delete()
+            .eq('forum_id', forumId);
+        
+        if (commentsError) {
+            console.error('Error deleting forum comments:', commentsError);
+            return res.status(500).json({ error: 'Failed to delete forum comments' });
+        }
+        
+        // Then delete the forum
+        const { error } = await supabase
+            .from('forums')
+            .delete()
+            .eq('id', forumId);
+        
+        if (error) {
+            console.error('Error deleting forum:', error);
+            return res.status(500).json({ error: 'Failed to delete forum' });
+        }
+        
+        res.json({ message: 'Forum deleted successfully' });
+    } catch (error) {
+        console.error('Error processing delete forum request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get comments for a forum
+app.get('/api/forums/:id/comments', async (req, res) => {
+    try {
+        const forumId = req.params.id;
+
+        console.log('Fetching comments for forum:', forumId);
+         
+        // Include discord_id and avatar in the forum_users selection
+        const { data, error } = await supabase
+            .from('forum_comments')
+            .select(`
+                id,
+                content,
+                created_at,
+                updated_at,
+                parent_id,
+                forum_users:user_id (
+                    id, 
+                    username, 
+                    avatar,
+                    discord_id
+                )
+            `)
+            .eq('forum_id', forumId)
+            .order('created_at', { ascending: true });
+         
+        if (error) {
+            console.error('Error fetching comments:', error);
+            return res.status(500).json({ error: 'Failed to fetch comments' });
+        }
+         
+        // Format the response and convert all IDs to strings for consistent comparison
+        const comments = data.map(comment => {
+            console.log('Raw comment data from DB:', {
+                id: comment.id,
+                forum_users: comment.forum_users,
+                parent_id: comment.parent_id || null
+            });
+             
+            return {
+                id: String(comment.id),
+                content: comment.content,
+                created_at: comment.created_at,
+                updated_at: comment.updated_at,
+                parent_id: comment.parent_id ? String(comment.parent_id) : null,
+                user_id: comment.forum_users ? String(comment.forum_users.id) : null,
+                username: comment.forum_users?.username,
+                avatar: comment.forum_users?.avatar,
+                discord_id: comment.forum_users?.discord_id
+            };
+        });
+         
+        console.log(`Returning ${comments.length} comments with avatar data`);
+        res.json(comments);
+    } catch (error) {
+        console.error('Error processing comments request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Create a comment
+app.post('/api/forums/:id/comments', isAuthenticated, async (req, res) => {
+    try {
+        const forumId = req.params.id;
+        const { content, parent_id } = req.body;
+        
+        console.log('Creating comment with parent_id:', parent_id);
+        
+        if (!content) {
+            return res.status(400).json({ error: 'Comment content is required' });
+        }
+        
+        // Check if forum exists
+        const { data: forum, error: forumError } = await supabase
+            .from('forums')
+            .select('id')
+            .eq('id', forumId)
+            .single();
+        
+        if (forumError || !forum) {
+            return res.status(404).json({ error: 'Forum not found' });
+        }
+        
+        // Get or create forum user
+        let forumUserId;
+        
+        const { data: existingForumUser, error: existingUserError } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', req.user.username)
+            .single();
+            
+        if (existingUserError) {
+            console.error('Error checking forum user:', existingUserError);
+            return res.status(500).json({ error: 'Failed to verify forum user' });
+        }
+        
+        if (existingForumUser) {
+            forumUserId = existingForumUser.id;
+        } else {
+            // Create a new forum_users record
+            const { data: newForumUser, error: createForumUserError } = await supabase
+                .from('forum_users')
+                .insert({
+                    username: req.user.username,
+                    email: req.user.email,
+                    avatar: req.user.avatar,
+                    discord_id: req.user.discord_id
+                })
+                .select('id')
+                .single();
+                
+            if (createForumUserError) {
+                console.error('Error creating forum user:', createForumUserError);
+                return res.status(500).json({ error: 'Failed to create forum user' });
+            }
+            
+            forumUserId = newForumUser.id;
+        }
+        
+        // Prepare comment data
+        const commentData = {
+            forum_id: forumId,
+            user_id: forumUserId,
+            content
+        };
+        
+        // Only add parent_id if it exists and is not null/undefined
+        if (parent_id) {
+            commentData.parent_id = parent_id;
+            console.log('Setting parent_id in comment:', parent_id);
+        }
+        
+        // Create the comment
+        const { data, error } = await supabase
+            .from('forum_comments')
+            .insert([commentData])
+            .select()
+            .single();
+        
+        if (error) {
+            console.error('Error creating comment:', error);
+            return res.status(500).json({ error: 'Failed to create comment' });
+        }
+        
+        console.log('Comment created successfully:', data);
+        
+        res.status(201).json(data);
+    } catch (error) {
+        console.error('Error processing create comment request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Create increment function in database
+app.post('/api/setup-forum-functions', async (req, res) => {
+    try {
+        // Create increment function if it doesn't exist
+        const { error } = await supabase.rpc('create_increment_function');
+        
+        if (error && !error.message.includes('already exists')) {
+            console.error('Error creating increment function:', error);
+            return res.status(500).json({ error: 'Failed to create increment function' });
+        }
+        
+        res.json({ message: 'Increment function created successfully' });
+    } catch (error) {
+        console.error('Error setting up forum functions:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Setup database functions
+app.post('/api/setup-database', async (req, res) => {
+    try {
+        // Initialize UUID extension
+        const { error: extError } = await supabase.rpc('execute_sql', {
+            sql_query: 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'
+        });
+        
+        if (extError) {
+            console.error('Error initializing UUID extension:', extError);
+            return res.status(500).json({ error: 'Failed to initialize UUID extension' });
+        }
+        
+        // Load the SQL schema
+        const schemaPath = path.join(__dirname, 'database', 'init.sql');
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        
+        // Execute the schema
+        const { error: schemaError } = await supabase.rpc('execute_sql', {
+            sql_query: schema
+        });
+        
+        if (schemaError) {
+            console.error('Error applying schema:', schemaError);
+            return res.status(500).json({ error: 'Failed to apply schema' });
+        }
+        
+        // Run the migration to add the markdown column
+        const migrationPath = path.join(__dirname, 'database', 'migrations', 'add_markdown_column.sql');
+        const migration = fs.readFileSync(migrationPath, 'utf8');
+        
+        // Execute the migration
+        const { error: migrationError } = await supabase.rpc('execute_sql', {
+            sql_query: migration
+        });
+        
+        if (migrationError) {
+            console.error('Error running migration:', migrationError);
+            return res.status(500).json({ error: 'Failed to run migration' });
+        }
+        
+        res.json({ success: true, message: 'Database setup complete' });
+    } catch (error) {
+        console.error('Error setting up database:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Add markdown column to forums table
+app.post('/api/migrations/add-markdown-column', async (req, res) => {
+    try {
+        // Run the migration to add the markdown column
+        const migrationPath = path.join(__dirname, 'database', 'migrations', 'add_markdown_column.sql');
+        const migration = fs.readFileSync(migrationPath, 'utf8');
+        
+        // Execute the migration
+        const { error: migrationError } = await supabase.rpc('execute_sql', {
+            sql_query: migration
+        });
+        
+        if (migrationError) {
+            console.error('Error running migration:', migrationError);
+            return res.status(500).json({ error: 'Failed to run migration' });
+        }
+        
+        res.json({ success: true, message: 'Markdown column added successfully' });
+    } catch (error) {
+        console.error('Error adding markdown column:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Add summary column migration
+app.post('/api/migrations/add-summary-column', async (req, res) => {
+    try {
+        console.log('Running summary column migration...');
+        
+        // Check if the column already exists
+        const { data: checkResult, error: checkError } = await supabase
+            .from('forums')
+            .select('summary')
+            .limit(1);
+            
+        // If we can successfully query the column, it exists
+        if (!checkError) {
+            console.log('Summary column already exists');
+            return res.json({ success: true, status: 'Column already exists' });
+        }
+        
+        // Column doesn't exist, add it
+        const { error } = await supabase.rpc('execute_sql', { 
+            sql_query: 'ALTER TABLE forums ADD COLUMN IF NOT EXISTS summary TEXT DEFAULT NULL' 
+        });
+        
+        if (error) {
+            console.error('Error adding summary column:', error);
+            return res.status(500).json({ success: false, error: 'Failed to add summary column' });
+        }
+        
+        console.log('Successfully added summary column to forums table');
+        return res.json({ success: true, status: 'Column added' });
+    } catch (error) {
+        console.error('Error in summary column migration:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
+
+// API Routes
+app.get('/api/user', isAuthenticated, async (req, res) => {
+    try {
+        // Get complete user data from Supabase
+        const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('discord_id', req.user.discord_id)
+            .single();
+
+        if (error) {
+            console.error('Error fetching user data:', error);
+            throw error;
+        }
+
+        // Combine with Discord data
+        const user = {
+            ...userData,
+            discriminator: req.user.discriminator,
+            avatar_url: req.user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${req.user.discord_id}/${req.user.avatar}.png`
+                : null
+        };
+
         res.json(user);
     } catch (error) {
-        console.error('Error fetching user:', error);
-        res.status(500).json({ error: 'Failed to fetch user data' });
+        console.error('Error getting user data:', error);
+        res.status(500).json({ error: 'Failed to get user data' });
     }
 });
 
@@ -212,7 +843,7 @@ app.post('/api/user/settings', isAuthenticated, async (req, res) => {
     try {
         const { minecraft_username, email_notifications, discord_notifications } = req.body;
         
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('users')
             .update({
                 minecraft_username,
@@ -220,10 +851,22 @@ app.post('/api/user/settings', isAuthenticated, async (req, res) => {
                 discord_notifications,
                 updated_at: new Date()
             })
-            .eq('id', req.user.id);
+            .eq('discord_id', req.user.discord_id)
+            .select()
+            .single();
 
         if (error) throw error;
-        res.json({ success: true });
+        
+        // Add additional user data
+        const userData = {
+            ...data,
+            discriminator: req.user.discriminator,
+            avatar_url: req.user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${req.user.discord_id}/${req.user.avatar}.png`
+                : null
+        };
+        
+        res.json(userData);
     } catch (error) {
         console.error('Error updating user settings:', error);
         res.status(500).json({ error: 'Failed to update user settings' });
@@ -253,15 +896,44 @@ app.post('/api/user/minecraft', isAuthenticated, async (req, res) => {
             return res.status(400).json({ error: 'Username is required' });
         }
 
+        // First verify the user exists
+        const { data: existingUser, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('discord_id', req.user.discord_id)
+            .single();
+
+        if (userError) {
+            console.error('Error finding user:', userError);
+            return res.status(500).json({ error: 'Failed to verify user' });
+        }
+
+        // Update the user's Minecraft username
         const { data, error } = await supabase
             .from('users')
-            .update({ minecraft_username: username })
-            .eq('id', req.user.id)
+            .update({ 
+                minecraft_username: username,
+                updated_at: new Date()
+            })
+            .eq('discord_id', req.user.discord_id)
             .select()
             .single();
 
-        if (error) throw error;
-        res.json(data);
+        if (error) {
+            console.error('Error updating Minecraft username:', error);
+            throw error;
+        }
+
+        // Add additional user data
+        const userData = {
+            ...data,
+            discriminator: req.user.discriminator,
+            avatar_url: req.user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${req.user.discord_id}/${req.user.avatar}.png`
+                : null
+        };
+        
+        res.json(userData);
     } catch (error) {
         console.error('Error linking Minecraft account:', error);
         res.status(500).json({ error: 'Failed to link Minecraft account' });
@@ -288,7 +960,23 @@ app.delete('/api/user/minecraft', isAuthenticated, async (req, res) => {
 app.patch('/api/user/preferences', isAuthenticated, async (req, res) => {
     try {
         const { email_notifications, discord_notifications } = req.body;
-        const updates = {};
+        
+        // First verify the user exists
+        const { data: existingUser, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('discord_id', req.user.discord_id)
+            .single();
+
+        if (userError) {
+            console.error('Error finding user:', userError);
+            return res.status(500).json({ error: 'Failed to verify user' });
+        }
+
+        // Prepare updates
+        const updates = {
+            updated_at: new Date()
+        };
         
         if (typeof email_notifications === 'boolean') {
             updates.email_notifications = email_notifications;
@@ -297,19 +985,29 @@ app.patch('/api/user/preferences', isAuthenticated, async (req, res) => {
             updates.discord_notifications = discord_notifications;
         }
 
-        if (Object.keys(updates).length === 0) {
-            return res.status(400).json({ error: 'No valid preferences provided' });
-        }
-
+        // Update the user's preferences
         const { data, error } = await supabase
             .from('users')
             .update(updates)
-            .eq('id', req.user.id)
+            .eq('discord_id', req.user.discord_id)
             .select()
             .single();
 
-        if (error) throw error;
-        res.json(data);
+        if (error) {
+            console.error('Error updating preferences:', error);
+            throw error;
+        }
+
+        // Add additional user data
+        const userData = {
+            ...data,
+            discriminator: req.user.discriminator,
+            avatar_url: req.user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${req.user.discord_id}/${req.user.avatar}.png`
+                : null
+        };
+        
+        res.json(userData);
     } catch (error) {
         console.error('Error updating preferences:', error);
         res.status(500).json({ error: 'Failed to update preferences' });
@@ -659,6 +1357,37 @@ function getUpgradeConfig(upgradeId) {
 
     return upgrades[upgradeId];
 }
+
+// Get forum user by username
+app.get('/api/forum-user', async (req, res) => {
+    try {
+        const { username } = req.query;
+        
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+        
+        console.log('Looking up forum user ID for username:', username);
+        
+        // Get forum user ID
+        const { data, error } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', username)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching forum user:', error);
+            return res.status(404).json({ error: 'Forum user not found' });
+        }
+        
+        console.log('Found forum user ID:', data.id);
+        res.json({ id: String(data.id) });
+    } catch (error) {
+        console.error('Error processing forum user request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // Serve static files
 app.get('*', (req, res) => {

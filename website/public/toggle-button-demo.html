@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Toggle Button Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/toggle-button.css">
+    <style>
+        .demo-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: var(--dark-bg, #141722);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1, h2 {
+            color: var(--text-white, #ffffff);
+            margin-bottom: 20px;
+        }
+        
+        p {
+            color: var(--text-light, rgba(255, 255, 255, 0.6));
+            margin-bottom: 15px;
+        }
+        
+        .toggle-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .code-example {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            color: var(--text-light, rgba(255, 255, 255, 0.7));
+            margin: 15px 0;
+        }
+        
+        .output-display {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            color: var(--text-light, rgba(255, 255, 255, 0.7));
+        }
+    </style>
+</head>
+<body class="has-navbar">
+    <div class="container">
+        <div class="demo-container">
+            <h1>Universal Toggle Button Component</h1>
+            <p>A reusable toggle button component that matches the design of your website.</p>
+            
+            <div class="demo-section">
+                <h2>Basic Usage</h2>
+                <p>Default toggle button with label:</p>
+                <div class="toggle-examples">
+                    <label class="universal-toggle">
+                        <input type="checkbox" data-toggle-id="demo1">
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Default Toggle</span>
+                    </label>
+                </div>
+                
+                <div class="code-example">
+                    &lt;label class="universal-toggle"&gt;
+                      &lt;input type="checkbox" data-toggle-id="demo1"&gt;
+                      &lt;span class="universal-toggle-slider"&gt;&lt;/span&gt;
+                      &lt;span class="universal-toggle-label"&gt;Default Toggle&lt;/span&gt;
+                    &lt;/label&gt;
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h2>Size Variations</h2>
+                <p>The toggle comes in three sizes: small, default, and large:</p>
+                <div class="toggle-examples">
+                    <label class="universal-toggle small">
+                        <input type="checkbox" data-toggle-id="demo2">
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Small Toggle</span>
+                    </label>
+                    
+                    <label class="universal-toggle">
+                        <input type="checkbox" data-toggle-id="demo3" checked>
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Default Toggle (checked)</span>
+                    </label>
+                    
+                    <label class="universal-toggle large">
+                        <input type="checkbox" data-toggle-id="demo4">
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Large Toggle</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h2>States</h2>
+                <p>Toggle buttons can be disabled:</p>
+                <div class="toggle-examples">
+                    <label class="universal-toggle disabled">
+                        <input type="checkbox" data-toggle-id="demo5" disabled>
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Disabled Toggle</span>
+                    </label>
+                    
+                    <label class="universal-toggle disabled">
+                        <input type="checkbox" data-toggle-id="demo6" checked disabled>
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Disabled Toggle (checked)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h2>Interactive Example</h2>
+                <p>This toggle demonstrates the callback functionality:</p>
+                <div class="toggle-examples">
+                    <label class="universal-toggle">
+                        <input type="checkbox" data-toggle-id="interactive" data-callback="handleToggleDemo">
+                        <span class="universal-toggle-slider"></span>
+                        <span class="universal-toggle-label">Interactive Toggle</span>
+                    </label>
+                    
+                    <div class="output-display" id="toggleOutput">
+                        Toggle is currently OFF
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="setToggleState('interactive', true)">Turn ON</button>
+                    <button class="btn btn-secondary" onclick="setToggleState('interactive', false)">Turn OFF</button>
+                    <button class="btn" onclick="toggleEnabled()">Enable/Disable</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/toggle-button.js"></script>
+    <script>
+        let isEnabled = true;
+        
+        function handleToggleDemo(isChecked) {
+            const output = document.getElementById('toggleOutput');
+            output.textContent = `Toggle is currently ${isChecked ? 'ON' : 'OFF'}`;
+        }
+        
+        function toggleEnabled() {
+            isEnabled = !isEnabled;
+            setToggleEnabled('interactive', isEnabled);
+        }
+        
+        // Initialize with current state
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const isChecked = getToggleState('interactive');
+                handleToggleDemo(isChecked);
+            }, 100);
+        });
+    </script>
+</body>
+</html> 

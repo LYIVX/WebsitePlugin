@@ -306,47 +306,218 @@ class TabBar {
     }
 
     generateRankContent(ranks) {
-        return `
-            <div class="rank-grid">
-                ${ranks.map(rank => `
-                    <div class="rank-card ${this.formatClassName(rank.name)}">
-                        <div class="rank-header">
-                            <i class="fas ${rank.icon}"></i>
-                            <h3>${rank.name}</h3>
-                            <div class="rank-price">£${rank.price.toFixed(2)}</div>
-                        </div>
-                        <ul class="rank-features">
-                            ${rank.features.map(feature => `
-                                <li><i class="fas fa-check"></i> ${feature}</li>
-                            `).join('')}
-                        </ul>
-                        <button class="btn btn-primary" onclick="purchaseRank('${this.formatId(rank.name)}', ${rank.price})">Purchase</button>
+        const grid = document.createElement('div');
+        grid.className = 'rank-grid';
+        
+        // Add responsive class for small screens
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            grid.classList.add('rank-grid-mobile');
+        }
+        
+        ranks.forEach(rank => {
+            const rankId = this.formatId(rank.name);
+            const card = document.createElement('div');
+            card.className = `rank-card ${this.formatClassName(rank.name)}`;
+            
+            // Create mobile-optimized layout
+            const featuresList = rank.features.map(feature => {
+                const iconClass = getFeatureIcon(feature);
+                return `<li><i class="fas ${iconClass}"></i> <span class="feature-text">${feature}</span></li>`;
+            }).join('');
+            
+            card.innerHTML = `
+                <div class="rank-header">
+                    <i class="fas ${rank.icon}"></i>
+                    <h3>${rank.name}</h3>
+                    <div class="rank-price">£${rank.price.toFixed(2)}</div>
+                </div>
+                <div class="rank-info">
+                    <div class="rank-category">${this.getCategory(rank.name)} Rank</div>
+                    <ul class="rank-features">
+                        ${featuresList}
+                    </ul>
+                    <div class="card-button-container">
+                        <button class="universal-btn secondary add-to-cart-btn" data-rank-id="${rankId}" data-rank-name="${rank.name}" data-rank-price="${rank.price.toFixed(2)}">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
                     </div>
-                `).join('')}
-            </div>
-        `;
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+        
+        // Add event listeners for purchase buttons
+        setTimeout(() => {
+            const purchaseButtons = grid.querySelectorAll('.purchase-btn');
+            purchaseButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const rankId = event.currentTarget.getAttribute('data-rank-id');
+                    const rankName = event.currentTarget.getAttribute('data-rank-name');
+                    const rankPrice = parseFloat(event.currentTarget.getAttribute('data-rank-price'));
+                    
+                    // Call the purchaseRank function from shop.js
+                    purchaseRank(rankId, rankPrice);
+                });
+            });
+            
+            // Add event listeners for add to cart buttons
+            const addToCartButtons = grid.querySelectorAll('.add-to-cart-btn');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const rankId = event.currentTarget.getAttribute('data-rank-id');
+                    const rankName = event.currentTarget.getAttribute('data-rank-name');
+                    const rankPrice = parseFloat(event.currentTarget.getAttribute('data-rank-price'));
+                    
+                    // Add to cart
+                    if (typeof addToCart === 'function') {
+                        addToCart({
+                            id: rankId,
+                            name: rankName,
+                            price: rankPrice,
+                            type: 'rank'
+                        });
+                    } else {
+                        console.error('addToCart function not found');
+                    }
+                });
+            });
+            
+            // Add feature tooltips for mobile
+            if (isMobile) {
+                const featureItems = grid.querySelectorAll('.rank-features li');
+                featureItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        // Remove active class from all items
+                        featureItems.forEach(i => i.classList.remove('active'));
+                        // Add active class to clicked item
+                        this.classList.add('active');
+                    });
+                });
+            }
+            
+            // Dispatch event to notify that ranks have been loaded
+            document.dispatchEvent(new CustomEvent('ranksLoaded'));
+        }, 0);
+        
+        // Add resize listener to adjust grid classes
+        window.addEventListener('resize', () => {
+            const isMobileNow = window.innerWidth <= 768;
+            if (isMobileNow) {
+                grid.classList.add('rank-grid-mobile');
+            } else {
+                grid.classList.remove('rank-grid-mobile');
+            }
+        });
+        
+        return grid;
     }
 
     generateUpgradeContent(upgrades) {
-        return `
-            <div class="rank-grid">
-                ${upgrades.map(upgrade => `
-                    <div class="rank-card upgrade ${this.formatClassName(upgrade.from)}-to-${this.formatClassName(upgrade.to)}">
-                        <div class="rank-header">
-                            <i class="fas fa-arrow-up"></i>
-                            <h3>${upgrade.from} → ${upgrade.to}</h3>
-                            <div class="rank-price">£${upgrade.price.toFixed(2)}</div>
-                        </div>
-                        <ul class="rank-features">
-                            ${upgrade.features.map(feature => `
-                                <li><i class="fas fa-check"></i> ${feature}</li>
-                            `).join('')}
-                        </ul>
-                        <button class="btn btn-primary" onclick="purchaseUpgrade('${this.formatId(upgrade.from)}-to-${this.formatId(upgrade.to)}', ${upgrade.price})">Upgrade</button>
+        const grid = document.createElement('div');
+        grid.className = 'rank-grid';
+        
+        // Add responsive class for small screens
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            grid.classList.add('rank-grid-mobile');
+        }
+        
+        upgrades.forEach(upgrade => {
+            const upgradeId = `${this.formatId(upgrade.from)}-to-${this.formatId(upgrade.to)}`;
+            const card = document.createElement('div');
+            card.className = `rank-card upgrade ${this.formatClassName(upgrade.from)}-to-${this.formatClassName(upgrade.to)}`;
+            
+            // Create mobile-optimized layout
+            const featuresList = upgrade.features.map(feature => {
+                const iconClass = getFeatureIcon(feature);
+                return `<li><i class="fas ${iconClass}"></i> <span class="feature-text">${feature}</span></li>`;
+            }).join('');
+            
+            card.innerHTML = `
+                <div class="rank-header">
+                    <i class="fas fa-arrow-up"></i>
+                    <h3>${upgrade.from} ➔ ${upgrade.to}</h3>
+                    <div class="rank-price">£${upgrade.price.toFixed(2)}</div>
+                </div>
+                <div class="rank-info">
+                    <div class="rank-category">Rank Upgrade</div>
+                    <ul class="rank-features">
+                        ${featuresList}
+                    </ul>
+                    <div class="card-button-container">
+                        <button class="universal-btn secondary add-to-cart-btn" data-upgrade-id="${upgradeId}" data-upgrade-name="${upgrade.from} to ${upgrade.to}" data-upgrade-price="${upgrade.price.toFixed(2)}">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
                     </div>
-                `).join('')}
-            </div>
-        `;
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        });
+        
+        // Add event listeners for purchase buttons
+        setTimeout(() => {
+            const purchaseButtons = grid.querySelectorAll('.purchase-btn');
+            purchaseButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const upgradeId = event.currentTarget.getAttribute('data-upgrade-id');
+                    const upgradeName = event.currentTarget.getAttribute('data-upgrade-name');
+                    const upgradePrice = parseFloat(event.currentTarget.getAttribute('data-upgrade-price'));
+                    
+                    // Call the purchaseUpgrade function from shop.js
+                    purchaseUpgrade(upgradeId, upgradePrice);
+                });
+            });
+            
+            // Add event listeners for add to cart buttons
+            const addToCartButtons = grid.querySelectorAll('.add-to-cart-btn');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const upgradeId = event.currentTarget.getAttribute('data-upgrade-id');
+                    const upgradeName = event.currentTarget.getAttribute('data-upgrade-name');
+                    const upgradePrice = parseFloat(event.currentTarget.getAttribute('data-upgrade-price'));
+                    
+                    // Add upgrade to cart
+                    if (typeof addToCart === 'function') {
+                        addToCart({
+                            id: upgradeId,
+                            name: upgradeName,
+                            price: upgradePrice,
+                            type: 'upgrade'
+                        });
+                    } else {
+                        console.error('addToCart function not found');
+                    }
+                });
+            });
+            
+            // Add feature tooltips for mobile
+            if (isMobile) {
+                const featureItems = grid.querySelectorAll('.rank-features li');
+                featureItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        // Remove active class from all items
+                        featureItems.forEach(i => i.classList.remove('active'));
+                        // Add active class to clicked item
+                        this.classList.add('active');
+                    });
+                });
+            }
+        }, 0);
+        
+        // Add resize listener to adjust grid classes
+        window.addEventListener('resize', () => {
+            const isMobileNow = window.innerWidth <= 768;
+            if (isMobileNow) {
+                grid.classList.add('rank-grid-mobile');
+            } else {
+                grid.classList.remove('rank-grid-mobile');
+            }
+        });
+        
+        return grid;
     }
 
     formatClassName(name) {
@@ -368,7 +539,14 @@ class TabBar {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'tab-content';
         contentDiv.setAttribute('data-tab-id', tabId);
-        contentDiv.innerHTML = content;
+        
+        // Check if content is a DOM element or a string
+        if (content instanceof Node) {
+            contentDiv.appendChild(content);
+        } else {
+            contentDiv.innerHTML = content;
+        }
+        
         contentDiv.style.display = 'none';
 
         // Store tab info
@@ -403,6 +581,11 @@ class TabBar {
 
         // Call onTabChange callback
         this.options.onTabChange(tabId);
+        
+        // Dispatch event to reinitialize tooltips for the newly displayed content
+        setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('ranksLoaded'));
+        }, 50);
     }
 
     handleTabClick(event) {
@@ -411,5 +594,11 @@ class TabBar {
 
         const tabId = tabBtn.getAttribute('data-tab-id');
         this.activateTab(tabId);
+    }
+
+    // Helper function to get category from rank name
+    getCategory(rankName) {
+        const serverwideRanks = ['Shadow Enchanter', 'Void Walker', 'Ethereal Warden', 'Astral Guardian'];
+        return serverwideRanks.includes(rankName) ? 'Serverwide' : 'Towny';
     }
 }

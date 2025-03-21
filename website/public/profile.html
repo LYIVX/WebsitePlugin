@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/css/universal-button.css">
+    <link rel="stylesheet" href="/css/toggle-button.css">
+    <link rel="stylesheet" href="/css/mobile.css">
 </head>
 <body>
     <!-- Navigation will be loaded by shared.js -->
@@ -74,26 +77,27 @@
                         <form id="settingsForm" class="settings-form">
                             <div class="form-group">
                                 <label class="form-label" for="minecraftUsername">Minecraft Username</label>
-                                <input type="text" id="minecraftUsername" class="form-control" placeholder="Enter your Minecraft username">
+                                <div class="input-with-button">
+                                    <input type="text" id="minecraftUsername" class="form-control" placeholder="Enter your Minecraft username">
+                                    <button type="button" id="saveMinecraftUsername" class="universal-btn primary" style="padding: 0.8rem 1rem;">Save Username</button>
+                                </div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="form-label">Notifications</label>
-                                <div class="toggle-group">
-                                    <label class="toggle">
-                                        <input type="checkbox" id="emailNotifications">
-                                        <span class="toggle-slider"></span>
-                                        <span class="toggle-label">Email Notifications</span>
+                                <div class="toggle-container column">
+                                    <label class="universal-toggle">
+                                        <input type="checkbox" id="emailNotifications" data-toggle-id="emailNotifications">
+                                        <span class="universal-toggle-slider"></span>
+                                        <span class="universal-toggle-label">Email Notifications</span>
                                     </label>
-                                    <label class="toggle">
-                                        <input type="checkbox" id="discordNotifications">
-                                        <span class="toggle-slider"></span>
-                                        <span class="toggle-label">Discord Notifications</span>
+                                    <label class="universal-toggle">
+                                        <input type="checkbox" id="discordNotifications" data-toggle-id="discordNotifications">
+                                        <span class="universal-toggle-slider"></span>
+                                        <span class="universal-toggle-label">Discord Notifications</span>
                                     </label>
                                 </div>
                             </div>
-
-                            <button type="submit" class="btn btn-primary">Save Settings</button>
                         </form>
                     </div>
                 </section>
@@ -129,6 +133,9 @@
 
     <!-- Load shared JavaScript -->
     <script src="/js/shared.js"></script>
+    <script src="/js/toggle-button.js"></script>
     <script src="/js/profile.js"></script>
+    <script src="/components/button.html"></script>
+    <script src="/js/universal-button.js"></script>
 </body>
 </html>

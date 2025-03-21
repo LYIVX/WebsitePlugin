@@ -59,7 +59,10 @@ function renderRankCards(container, ranks, showFullDetails = false) {
                 <p class="rank-description">${rank.description}</p>
                 ${showFullDetails ? `
                     <ul class="rank-features">
-                        ${rank.features.map(feature => `<li><i class="fas fa-check"></i> ${feature}</li>`).join('')}
+                        ${rank.features.map(feature => {
+                            const iconClass = getFeatureIcon(feature);
+                            return `<li><i class="fas ${iconClass}"></i> ${feature}</li>`;
+                        }).join('')}
                     </ul>
                 ` : ''}
                 <div class="rank-price">$${rank.price.toFixed(2)}</div>

@@ -1,26 +1,65 @@
 // Profile page functionality
-document.addEventListener('DOMContentLoaded', async () => {
-    // Load user data
+async function loadUserData() {
+    showLoading();
     try {
         const response = await fetch('/api/user');
         if (!response.ok) {
-            window.location.href = '/';
-            return;
+            throw new Error('Failed to load user data');
         }
         const user = await response.json();
+        console.log('Loaded user data:', user);
+        
+        // Initialize UI with user data
         updateProfileUI(user);
-        loadUserRanks(user.id);
-        loadPurchaseHistory(user.id);
+        
+        // Load additional data
+        if (user.id) {
+            await Promise.all([
+                loadUserRanks(user.id),
+                loadPurchaseHistory(user.id)
+            ]);
+        }
+        
+        return user;
     } catch (error) {
-        handleError(error, 'Failed to load profile data');
+        console.error('Failed to load profile data:', error);
+        showToast('Failed to load profile data', 'error');
+        throw error;
+    } finally {
+        hideLoading();
     }
+}
 
-    // Initialize settings form
-    const settingsForm = document.getElementById('settingsForm');
-    settingsForm.addEventListener('submit', handleSettingsSubmit);
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Load initial user data
+        const user = await loadUserData();
+        
+        // Initialize settings change listeners - using the custom toggle-changed event
+        document.addEventListener('toggle-changed', (event) => {
+            if (event.detail.id === 'emailNotifications' || event.detail.id === 'discordNotifications') {
+                console.log(`${event.detail.id} changed to: ${event.detail.checked}`);
+                saveSettings();
+            }
+        });
+        
+        // Setup Minecraft username save button
+        document.getElementById('saveMinecraftUsername').addEventListener('click', handleSaveUsername);
+        
+    } catch (error) {
+        console.error('Failed to initialize profile page:', error);
+        if (error.message === 'Failed to load user data') {
+            window.location.href = '/';
+        }
+    }
 });
 
 function updateProfileUI(user) {
+    if (!user) {
+        console.error('No user data provided to updateProfileUI');
+        return;
+    }
+
     // Update profile header
     const avatar = document.querySelector('.profile-avatar');
     const username = document.querySelector('.profile-username');
@@ -29,10 +68,8 @@ function updateProfileUI(user) {
     const memberSince = document.querySelector('.member-since');
 
     // Use the same avatar format as the navbar
-    avatar.src = user.avatar 
-        ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` 
-        : '/images/default-avatar.png';
-    username.textContent = user.username;
+    avatar.src = user.avatar_url || '/images/default-avatar.png';
+    username.textContent = user.username || 'Unknown User';
     discordTag.textContent = `Discord: ${user.username}#${user.discriminator || '0000'}`;
     minecraftUser.textContent = user.minecraft_username ? 
         `Minecraft: ${user.minecraft_username}` : 
@@ -51,9 +88,29 @@ function updateProfileUI(user) {
     }
 
     // Set form values
-    document.getElementById('minecraftUsername').value = user.minecraft_username || '';
-    document.getElementById('emailNotifications').checked = user.email_notifications;
-    document.getElementById('discordNotifications').checked = user.discord_notifications;
+    const minecraftInput = document.getElementById('minecraftUsername');
+    const emailToggle = document.getElementById('emailNotifications');
+    const discordToggle = document.getElementById('discordNotifications');
+    
+    if (minecraftInput) {
+        minecraftInput.value = user.minecraft_username || '';
+    }
+    
+    if (emailToggle) {
+        emailToggle.checked = Boolean(user.email_notifications);
+    }
+    
+    if (discordToggle) {
+        discordToggle.checked = Boolean(user.discord_notifications);
+    }
+    
+    console.log('Updated UI with user data:', {
+        minecraft_username: user.minecraft_username,
+        email_notifications: user.email_notifications,
+        discord_notifications: user.discord_notifications,
+        emailToggleState: emailToggle?.checked,
+        discordToggleState: discordToggle?.checked
+    });
 }
 
 async function loadUserRanks(userId) {
@@ -72,7 +129,7 @@ async function loadUserRanks(userId) {
                 <div class="empty-state">
                     <i class="fas fa-crown"></i>
                     <p>No active ranks</p>
-                    <a href="/shop.html" class="btn btn-primary">Browse Ranks</a>
+                    <a href="/shop.html" class="universal-btn primary">Browse Ranks</a>
                 </div>
             `;
             return;
@@ -159,32 +216,71 @@ async function loadPurchaseHistory(userId) {
     }
 }
 
-async function handleSettingsSubmit(event) {
-    event.preventDefault();
+// Handler for saving Minecraft username
+async function handleSaveUsername() {
     showLoading();
 
-    const formData = {
-        minecraft_username: document.getElementById('minecraftUsername').value,
-        email_notifications: document.getElementById('emailNotifications').checked,
-        discord_notifications: document.getElementById('discordNotifications').checked
-    };
+    const username = document.getElementById('minecraftUsername').value.trim();
+    
+    if (!username) {
+        showToast('Please enter a Minecraft username', 'error');
+        hideLoading();
+        return;
+    }
 
     try {
-        const response = await fetch('/api/user/settings', {
+        const response = await fetch('/api/user/minecraft', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ username })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update Minecraft username');
+        }
+        
+        const user = await response.json();
+        updateProfileUI(user);
+        showToast('Minecraft username saved', 'success');
+    } catch (error) {
+        console.error('Error saving Minecraft username:', error);
+        showToast('Failed to save Minecraft username', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+async function saveSettings() {
+    showLoading();
+
+    try {
+        const formData = {
+            email_notifications: getToggleState('emailNotifications'),
+            discord_notifications: getToggleState('discordNotifications')
+        };
+
+        const response = await fetch('/api/user/preferences', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify(formData)
         });
 
-        if (!response.ok) throw new Error('Failed to update settings');
+        if (!response.ok) {
+            throw new Error('Failed to update settings');
+        }
         
         const user = await response.json();
         updateProfileUI(user);
-        showToast('Settings updated successfully', 'success');
+        showToast('Settings saved', 'success');
     } catch (error) {
-        handleError(error, 'Failed to update settings');
+        console.error('Error saving settings:', error);
+        showToast('Failed to save settings', 'error');
     } finally {
         hideLoading();
     }

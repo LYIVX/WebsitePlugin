@@ -1,0 +1,642 @@
+.edit-form-container {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(35, 40, 55, 0.65);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.edit-textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: rgba(35, 40, 55, 0.65);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    resize: vertical;
+}
+
+.edit-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-cancel-edit, .btn-submit-edit {
+    padding: 5px 15px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-cancel-edit {
+    background-color: rgba(50, 55, 70, 0.8);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-cancel-edit:hover {
+    background-color: rgba(70, 75, 90, 0.9);
+    color: #fff;
+}
+
+.btn-submit-edit {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-submit-edit:hover {
+    background-color: var(--primary-dark);
+}
+
+.edit-comment-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.edit-comment-btn:hover {
+    color: var(--primary-color);
+}
+
+/* Markdown toggle and toolbar styles */
+.markdown-toggle-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+
+.toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    background-color: #ccc;
+    border-radius: 34px;
+    transition: .4s;
+    margin-right: 10px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+.toggle input:checked + .toggle-slider {
+    background-color: #2196F3;
+}
+
+.toggle input:checked + .toggle-slider:before {
+    transform: translateX(18px);
+}
+
+.toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.markdown-toolbar {
+    display: none !important;
+    width: 100%;
+    margin-bottom: 15px;
+    background-color: rgba(35, 40, 55, 0.75);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+}
+
+.markdown-toolbar.active {
+    display: block !important;
+}
+
+.md-btn {
+    background-color: rgba(50, 55, 70, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    color: rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.md-btn:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.md-btn i {
+    margin-right: 2px;
+    font-size: 12px;
+}
+
+/* Reset media query that could affect the layout */
+@media (max-width: 768px) {
+    .markdown-toolbar {
+        justify-content: flex-start !important;
+    }
+}
+
+/* Markdown preview styles */
+.markdown-preview-container {
+    display: none;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.markdown-preview {
+    display: none !important;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    margin-top: 10px;
+    background-color: rgba(35, 40, 55, 0.65);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-preview.active {
+    display: block !important;
+}
+
+.markdown-preview.empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+}
+
+.markdown-preview .placeholder-text {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Markdown content styles */
+.markdown-content {
+    line-height: 1.6;
+    width: 100%;
+    overflow: hidden; /* Prevent content from overflowing */
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+    background-color: transparent; /* Ensure any colored background works properly */
+    padding: 5px 0;
+    line-height: 1.4;
+    display: block;
+    width: 100%;
+    overflow: visible;
+    white-space: normal;
+    word-wrap: break-word;
+    margin: 1rem 0;
+}
+
+.markdown-content h1 {
+    font-size: 1.8rem;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3rem;
+    margin-top: 2rem;
+    font-weight: 700;
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid #eaecef;
+    padding-bottom: 0.3rem;
+    margin-top: 1.8rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.markdown-content h4 {
+    font-size: 1rem;
+    margin-top: 1.2rem;
+}
+
+.markdown-content p {
+    margin-bottom: 1rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content blockquote {
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--accent-color);
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(35, 40, 55, 0.5);
+    border-radius: 4px;
+}
+
+.markdown-content code {
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 85%;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.markdown-content pre {
+    padding: 1rem;
+    overflow: auto;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 85%;
+    background-color: rgba(20, 23, 34, 0.4);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: block;
+    width: 100%;
+    white-space: pre !important;
+}
+
+.markdown-content pre > code {
+    display: block;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    white-space: pre !important;
+    width: 100%;
+}
+
+.markdown-content p code,
+.markdown-content li code,
+.markdown-content h1 code,
+.markdown-content h2 code,
+.markdown-content h3 code,
+.markdown-content h4 code,
+.markdown-content h5 code,
+.markdown-content h6 code,
+.markdown-content td code,
+.markdown-content th code,
+.markdown-content blockquote code {
+    display: inline;
+    padding: 0.2rem 0.4rem;
+    margin: 0 0.2rem;
+    white-space: normal;
+    background-color: rgba(35, 40, 55, 0.75);
+    border-radius: 4px;
+    border-left: 2px solid var(--primary-color);
+}
+
+.markdown-content img,
+.markdown-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-content a {
+    color: #0366d6;
+    text-decoration: none;
+}
+
+.markdown-content a:hover {
+    text-decoration: underline;
+}
+
+.markdown-content a img,
+a .markdown-image {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Markdown indicator in forum list */
+.forum-item-meta span i.fas.fa-markdown {
+    color: #6c8ebf;
+    margin-right: 4px;
+}
+
+.forum-item-meta span:has(i.fas.fa-markdown),
+.forum-item-meta span.markdown-indicator {
+    background-color: rgba(108, 142, 191, 0.1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+/* Override any conflicting styles */
+.forum-content .markdown-content h1,
+.forum-content .markdown-content h2,
+.forum-content .markdown-content h3,
+.forum-content .markdown-content h4 {
+    line-height: 1.4 !important;
+    margin: 1em 0 !important;
+    padding: 5px 0 !important;
+    background-color: transparent !important;
+}
+
+/* Styles for markdown images */
+.markdown-content img,
+.markdown-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Resizable image styles */
+.markdown-image.resizable {
+    transition: all 0.3s ease;
+}
+
+.markdown-image.resizable:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for image captions */
+.markdown-content figure {
+    margin: 1.5rem 0;
+    text-align: center;
+}
+
+.markdown-content figcaption {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.markdown-content a img,
+a .markdown-image {
+    display: inline-block;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Modal layout improvements for wider modals */
+.modal-content.forum-view-preview {
+    max-width: 1200px;
+    width: 98%;
+    margin: 30px auto;
+    max-height: 85vh; /* Limit height to 85% of viewport height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    position: relative;
+}
+
+/* Ensure modal is vertically centered and scrollable */
+.modal {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+@media (min-width: 1400px) {
+    .modal-content.forum-view-preview {
+        max-width: 1400px;
+    }
+}
+
+/* Improve spacing in wider modals */
+.forum-view-preview .form-group.content-group {
+    margin-bottom: 30px;
+}
+
+.forum-view-preview .content-textarea {
+    min-height: 250px;
+    max-height: 50vh;
+    resize: vertical;
+    background-color: rgba(35, 40, 55, 0.65);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+/* Improve markdown preview area */
+.forum-view-preview .markdown-preview {
+    min-height: 150px;
+    max-height: 350px; /* Larger preview area */
+}
+
+/* Subtle, modern scrollbar styles */
+.modal-content.forum-view-preview::-webkit-scrollbar,
+.markdown-preview::-webkit-scrollbar,
+.content-textarea::-webkit-scrollbar {
+    width: 8px !important;
+    background: transparent !important;
+}
+
+.modal-content.forum-view-preview::-webkit-scrollbar-track,
+.markdown-preview::-webkit-scrollbar-track,
+.content-textarea::-webkit-scrollbar-track {
+    background: transparent !important;
+    margin: 5px 3px !important;
+}
+
+.modal-content.forum-view-preview::-webkit-scrollbar-thumb,
+.markdown-preview::-webkit-scrollbar-thumb,
+.content-textarea::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 20px !important;
+    border: none !important;
+    min-height: 40px !important;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-content.forum-view-preview::-webkit-scrollbar-thumb:hover,
+.markdown-preview::-webkit-scrollbar-thumb:hover,
+.content-textarea::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Firefox scrollbar styles */
+.modal-content.forum-view-preview,
+.markdown-preview,
+.content-textarea {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+}
+
+/* Ensure clean modal styling */
+.modal-content.forum-view-preview {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background-color: #1e2233 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Styles for markdown tables */
+.markdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.markdown-table th,
+.markdown-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-table thead {
+    background-color: rgba(106, 17, 203, 0.2);
+}
+
+.markdown-table th {
+    font-weight: 600;
+}
+
+.markdown-table tbody tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.markdown-table tbody tr:nth-of-type(even) {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.markdown-table tbody tr:last-of-type {
+    border-bottom: 2px solid rgba(106, 17, 203, 0.4);
+}
+
+/* Styles for horizontal rule */
+.markdown-hr {
+    height: 1px;
+    border: none;
+    background: linear-gradient(to right, transparent, rgba(106, 17, 203, 0.5), transparent);
+    margin: 2rem 0;
+}
+
+.markdown-content p code {
+    display: inline;
+    padding: 0.2rem 0.4rem;
+    margin: 0 0.2rem;
+    white-space: normal;
+    background-color: rgba(35, 40, 55, 0.75);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    border-left: 2px solid var(--primary-color);
+}
+
+/* Fix for Prism.js code block line break issue */
+.markdown-content pre[class*="language-"] .token-line,
+.forum-content pre[class*="language-"] .token-line {
+    display: block;
+    white-space: pre !important;
+}
+
+/* Force each line to display as a separate block */
+.forum-content pre[class*="language-"] code[class*="language-"],
+.markdown-content pre[class*="language-"] code[class*="language-"] {
+    display: block !important;
+    white-space: pre !important;
+    line-height: 1.5;
+}
+
+/* Preserve newlines in code blocks */
+.token.punctuation,
+.token.keyword,
+.token.operator,
+.token.literal-property,
+.token.property,
+.token.string,
+.token.number,
+.token.comment,
+.token.function {
+    white-space: pre !important;
+    display: inline-block;
+}
+
+/* Ensure Prism doesn't collapse content */
+.forum-content pre[class*="language-"],
+.markdown-content pre[class*="language-"] {
+    tab-size: 4;
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    white-space: pre !important;
+    background-color: rgba(20, 23, 34, 0.4);
+}
+
+/* Fix all line-height issues */
+pre[class*="language-"] {
+    line-height: 1.5 !important;
+}
+
+/* Collapsible code blocks */
+.markdown-content pre.collapsible,
+.forum-content pre.collapsible {
+    max-height: 160px; /* Approximately 5 lines + padding */
+    overflow-y: hidden;
+    position: relative;
+    transition: max-height 0.3s ease;
+}
+
+.markdown-content pre.collapsible.expanded,
+.forum-content pre.collapsible.expanded {
+    max-height: 1000px; /* Large enough for most code blocks */
+}
+
+/* Padding at the bottom of collapsible code blocks to make room for toggle button */
+.markdown-content pre.collapsible code,
+.forum-content pre.collapsible code {
+    padding-bottom: 30px;
+}
+
+/* When code block is expanded, adjust the toggle button */
+.markdown-content pre.collapsible.expanded .code-toggle-btn,
+.forum-content pre.collapsible.expanded .code-toggle-btn {
+    background: linear-gradient(to bottom, rgba(20, 23, 34, 0), rgba(20, 23, 34, 0.8));
+    width: 100%;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+} 

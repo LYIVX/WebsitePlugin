@@ -1,0 +1,141 @@
+/* Universal Toggle Button Component */
+:root {
+  --toggle-background: var(--dark-mid, #1e2231);
+  --toggle-border-color: var(--border-color, rgba(255, 255, 255, 0.1));
+  --toggle-slider-color: var(--text-light, rgba(255, 255, 255, 0.6));
+  --toggle-active-color: var(--primary-color, #6a11cb);
+  --toggle-active-slider: #ffffff;
+  --toggle-transition: all 0.3s ease;
+  --toggle-hover-bg: rgba(255, 255, 255, 0.05);
+}
+
+/* Toggle Container - can be used either horizontally or as a column */
+.toggle-container {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.5rem 0;
+}
+
+/* For profile notifications and similar stacked contexts */
+.toggle-container.column,
+form .toggle-container {
+  flex-direction: column;
+}
+
+.universal-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  cursor: pointer;
+  user-select: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: var(--toggle-transition);
+  width: max-content;
+  background: transparent;
+  /* Ensure there's no unwanted margins or line-height */
+  margin: 0;
+  line-height: normal;
+}
+
+.universal-toggle:hover {
+  background: var(--toggle-hover-bg);
+}
+
+.universal-toggle input {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.universal-toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 22px;
+  background: var(--toggle-background);
+  border-radius: 12px;
+  margin-right: 0.75rem !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  transition: var(--toggle-transition);
+  border: 1px solid var(--toggle-border-color);
+  flex-shrink: 0;
+  vertical-align: middle !important;
+}
+
+.universal-toggle-slider:before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 2px;
+  top: 1px;
+  background: var(--toggle-slider-color);
+  border-radius: 50%;
+  transition: var(--toggle-transition);
+}
+
+.universal-toggle input:checked + .universal-toggle-slider {
+  background: var(--toggle-active-color);
+  border-color: var(--toggle-active-color);
+}
+
+.universal-toggle input:checked + .universal-toggle-slider:before {
+  transform: translateX(20px);
+  background: var(--toggle-active-slider);
+}
+
+.universal-toggle-label {
+  font-weight: 500;
+  color: var(--text-light, rgba(255, 255, 255, 0.6));
+  font-size: 0.9rem;
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: normal !important;
+}
+
+/* Disabled state */
+.universal-toggle.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Small toggle variant */
+.universal-toggle.small .universal-toggle-slider {
+  width: 36px;
+  height: 20px;
+}
+
+.universal-toggle.small .universal-toggle-slider:before {
+  width: 14px;
+  height: 14px;
+}
+
+.universal-toggle.small input:checked + .universal-toggle-slider:before {
+  transform: translateX(16px);
+}
+
+/* Large toggle variant */
+.universal-toggle.large .universal-toggle-slider {
+  width: 52px;
+  height: 28px;
+}
+
+.universal-toggle.large .universal-toggle-slider:before {
+  width: 22px;
+  height: 22px;
+}
+
+.universal-toggle.large input:checked + .universal-toggle-slider:before {
+  transform: translateX(24px);
+}
+
+/* Ensure the old toggle styles don't interfere */
+.universal-toggle .toggle-slider,
+.universal-toggle .toggle-label {
+  display: none !important;
+} 
