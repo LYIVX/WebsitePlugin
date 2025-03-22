@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Setup copy IP button
         setupCopyIpButton();
         
-        // Load featured ranks
-        loadFeaturedRanks();
-
+        // Initialize the ranks slideshow
+        initRanksSlideshow();
+        
         // Setup avatar preview
         setupAvatarPreview();
         
@@ -568,4 +568,215 @@ function adjustHomePageGridSpacing() {
     }
     
     console.log('Home page grid spacing adjusted');
+}
+
+// Initialize the ranks slideshow in the sidebar
+function initRanksSlideshow() {
+    // Featured ranks data - only include first and last ranks from each category
+    const featuredRanks = [
+        // Shadow Enchanter (First Serverwide Rank)
+        {
+            name: 'Shadow Enchanter',
+            price: 9.99,
+            icon: 'fa-hat-wizard',
+            features: [
+                'Access to /fly command',
+                '3 /sethome locations',
+                'Colored chat messages',
+                'Special chat prefix'
+            ],
+            category: 'Serverwide',
+            position: 'Starter',
+            class: 'shadow-enchanter'
+        },
+        // Astral Guardian (Last Serverwide Rank)
+        {
+            name: 'Astral Guardian',
+            price: 39.99,
+            icon: 'fa-sun',
+            features: [
+                'All Ethereal Warden features',
+                'Access to /nick',
+                '10 /sethome locations',
+                'Custom particle trails'
+            ],
+            category: 'Serverwide',
+            position: 'Ultimate',
+            class: 'astral-guardian'
+        },
+        // Citizen (First Towny Rank)
+        {
+            name: 'Citizen',
+            price: 4.99,
+            icon: 'fa-user',
+            features: [
+                'Create and join towns',
+                'Basic town permissions',
+                'Town chat access',
+                'Town spawn access'
+            ],
+            category: 'Towny',
+            position: 'Starter',
+            class: 'citizen'
+        },
+        // Divine Ruler (Last Towny Rank)
+        {
+            name: 'Divine Ruler',
+            price: 44.99,
+            icon: 'fa-crown',
+            features: [
+                'All King features',
+                'Divine powers',
+                'Custom events',
+                'Ultimate perks'
+            ],
+            category: 'Towny',
+            position: 'Ultimate',
+            class: 'divine-ruler'
+        }
+    ];
+
+    const slideshow = document.getElementById('rankSlideshow');
+    const indicators = document.getElementById('slideshowIndicators');
+    const prevBtn = document.getElementById('prevRankBtn');
+    const nextBtn = document.getElementById('nextRankBtn');
+    
+    if (!slideshow || !indicators || !prevBtn || !nextBtn) {
+        console.error('Slideshow elements not found');
+        return;
+    }
+    
+    // Clear loading state
+    slideshow.innerHTML = '';
+    
+    let currentSlide = 0;
+    
+    // Create slides for each rank
+    featuredRanks.forEach((rank, index) => {
+        const slide = document.createElement('div');
+        slide.className = `rank-slide ${index === 0 ? 'active' : ''}`;
+        
+        // Get appropriate feature icons for each feature
+        const featuresList = rank.features.map(feature => {
+            const iconClass = getFeatureIcon(feature);
+            return `<li><i class="fas ${iconClass}"></i> <span class="feature-text">${feature}</span></li>`;
+        }).join('');
+        
+        slide.innerHTML = `
+            <div class="rank-card ${rank.class}">
+                <div class="rank-header">
+                    <i class="fas ${rank.icon}"></i>
+                    <h3>${rank.name}</h3>
+                    <div class="rank-price">£${rank.price.toFixed(2)}</div>
+                </div>
+                <div class="rank-info">
+                    <div class="rank-category">${rank.category} Rank</div>
+                    <div class="rank-position">${rank.position} Tier</div>
+                    <ul class="rank-features">
+                        ${featuresList}
+                    </ul>
+                    <div class="card-button-container">
+                        <button class="universal-btn primary" onclick="window.location.href='/shop.html'">View Details</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        slideshow.appendChild(slide);
+        
+        // Create indicator
+        const indicator = document.createElement('div');
+        indicator.className = `slideshow-indicator ${index === 0 ? 'active' : ''}`;
+        indicator.addEventListener('click', () => {
+            goToSlide(index);
+        });
+        indicators.appendChild(indicator);
+    });
+    
+    // Function to go to a specific slide
+    function goToSlide(slideIndex) {
+        const slides = slideshow.querySelectorAll('.rank-slide');
+        const dots = indicators.querySelectorAll('.slideshow-indicator');
+        
+        if (slides.length === 0 || dots.length === 0) return;
+        
+        // Hide all slides
+        slides.forEach(slide => {
+            slide.classList.remove('active');
+        });
+        
+        // Deactivate all dots
+        dots.forEach(dot => {
+            dot.classList.remove('active');
+        });
+        
+        // Show the selected slide and activate dot
+        slides[slideIndex].classList.add('active');
+        dots[slideIndex].classList.add('active');
+        
+        currentSlide = slideIndex;
+    }
+    
+    // Next slide function
+    function nextSlide() {
+        const slides = slideshow.querySelectorAll('.rank-slide');
+        if (slides.length === 0) return;
+        
+        currentSlide = (currentSlide + 1) % slides.length;
+        goToSlide(currentSlide);
+    }
+    
+    // Previous slide function
+    function prevSlide() {
+        const slides = slideshow.querySelectorAll('.rank-slide');
+        if (slides.length === 0) return;
+        
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        goToSlide(currentSlide);
+    }
+    
+    // Add event listeners
+    nextBtn.addEventListener('click', nextSlide);
+    prevBtn.addEventListener('click', prevSlide);
+    
+    // Auto-advance slides every 5 seconds
+    let slideInterval = setInterval(nextSlide, 5000);
+    
+    // Pause slideshow on hover
+    slideshow.addEventListener('mouseenter', () => {
+        clearInterval(slideInterval);
+    });
+    
+    // Resume slideshow on mouse leave
+    slideshow.addEventListener('mouseleave', () => {
+        slideInterval = setInterval(nextSlide, 5000);
+    });
+    
+    console.log('Ranks slideshow initialized');
+}
+
+// Helper function to determine the appropriate icon for a feature
+function getFeatureIcon(feature) {
+    const feature_lower = feature.toLowerCase();
+    
+    if (feature_lower.includes('fly')) return 'fa-feather-alt';
+    if (feature_lower.includes('home')) return 'fa-home';
+    if (feature_lower.includes('chat')) return 'fa-comment';
+    if (feature_lower.includes('prefix')) return 'fa-tag';
+    if (feature_lower.includes('enderchest')) return 'fa-box';
+    if (feature_lower.includes('workbench')) return 'fa-tools';
+    if (feature_lower.includes('nick')) return 'fa-user-edit';
+    if (feature_lower.includes('particle')) return 'fa-magic';
+    if (feature_lower.includes('town')) return 'fa-city';
+    if (feature_lower.includes('spawn')) return 'fa-map-marker-alt';
+    if (feature_lower.includes('create')) return 'fa-plus-circle';
+    if (feature_lower.includes('join')) return 'fa-sign-in-alt';
+    if (feature_lower.includes('power')) return 'fa-bolt';
+    if (feature_lower.includes('event')) return 'fa-calendar-alt';
+    if (feature_lower.includes('perk')) return 'fa-gift';
+    if (feature_lower.includes('priority')) return 'fa-star';
+    if (feature_lower.includes('access')) return 'fa-unlock';
+    
+    // Default icon
+    return 'fa-check-circle';
 } 

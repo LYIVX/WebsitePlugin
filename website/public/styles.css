@@ -16,6 +16,10 @@
   --fx-shadow-lg: 0 10px 15px rgba(0,0,0,0.1); --fx-shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
   /* Spacing */
   --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2rem;
+  /* External Brands */
+  --discord-color: #7289DA;
+  /* Special Colors */
+  --gold-color: #ffe600;
   /* Legacy Mappings */
   --primary-color: var(--brand-base); --primary-dark: var(--brand-dark); --primary-light: var(--brand-light);
   --accent-color: var(--brand-accent); --accent-dark: var(--brand-accent-dark); --accent-light: var(--brand-accent-light);
@@ -98,6 +102,15 @@ body.has-navbar { padding-top: 64px; }
   padding: 0 2rem;
   height: 100%;
 }
+
+.navbar-brand img {
+  width: 150px;
+  height: 150px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 3.4rem;
+}
+
 .navbar-brand:hover { color: var(--primary-color); }
 
 .navbar-menu { display: flex; align-items: center; height: 100%; }
@@ -125,8 +138,8 @@ body.has-navbar { padding-top: 64px; }
   height: 40px;
   line-height: 40px;
 }
-.nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); }
-.nav-link.active { color: #fff; background: rgba(106,17,203,0.4); }
+.nav-link:hover { color: var(--text-white); background: rgba(255,255,255,0.1); }
+.nav-link.active { color: var(--text-white); background: rgba(106,17,203,0.4); }
 
 .user-link {
   display: flex;
@@ -135,7 +148,7 @@ body.has-navbar { padding-top: 64px; }
   color: rgba(255,255,255,0.9);
   background: rgba(106,17,203,0.4);
 }
-.user-link i { color: #ff3a3a; font-size: 1rem; }
+.user-link i { color: var(--sys-error); font-size: 1rem; }
 
 /* Mobile menu toggle button */
 .mobile-menu-toggle {
@@ -269,21 +282,21 @@ body.has-navbar { padding-top: 64px; }
 /* For backwards compatibility, make .btn classes behave like universal-btn */
 .btn.primary {
   background-color: var(--primary-color);
-  color: white;
+  color: var(--text-white);
 }
 .btn.primary:hover:not(:disabled) {
   background-color: var(--primary-dark);
 }
 .btn.secondary {
   background-color: var(--accent-color);
-  color: white;
+  color: var(--text-white);
 }
 .btn.secondary:hover:not(:disabled) {
   opacity: 0.9;
 }
 .btn.danger {
-  background-color: rgba(231, 76, 60, 0.8);
-  color: white;
+  background-color: var(--error-color);
+  color: var(--text-white);
 }
 .btn.danger:hover:not(:disabled) {
   background-color: rgba(231, 76, 60, 1);
@@ -491,7 +504,7 @@ body.has-navbar { padding-top: 64px; }
 
 .rank-header i {
     font-size: 1.8rem;
-    color: white;
+    color: var(--text-white);
     background: rgba(0, 0, 0, 0.3);
     width: 50px;
     height: 50px;
@@ -507,7 +520,7 @@ body.has-navbar { padding-top: 64px; }
 
 .rank-header h3 {
     margin: 0 0 0.5rem 0;
-    color: white;
+    color: var(--text-white);
     font-size: 1.4rem;
     font-weight: 700;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -521,7 +534,7 @@ body.has-navbar { padding-top: 64px; }
     left: 0;
     right: 0;
     text-align: center;
-    color: white;
+    color: var(--text-white);
     font-size: 1.5rem;
     font-weight: 800;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -533,22 +546,22 @@ body.has-navbar { padding-top: 64px; }
 
 /* Shadow Enchanter - Deep Purple and Silver */
 .shadow-enchanter .rank-header::before {
-  background: linear-gradient(135deg, #940094 0%, #940094 50%, #ffe600 100%);
+    background: linear-gradient(135deg, var(--rank-shadow) 0%, var(--rank-shadow) 50%, var(--gold-color) 100%);
 }
 
 /* Void Walker - Deep Purple and Dark Slate */
 .void-walker .rank-header::before {
-  background: linear-gradient(135deg, #370057 0%, #370057 50%, #ffe600 100%);
+    background: linear-gradient(135deg, var(--rank-void) 0%, var(--rank-void) 50%, var(--gold-color) 100%);
 }
 
 /* Ethereal Warden - Gold and Light Blue */
 .ethereal-warden .rank-header::before {
-  background: linear-gradient(135deg, #00e1ff 0%, #00e1ff 50%, #ffe600 100%);
+    background: linear-gradient(135deg, var(--rank-ethereal) 0%, var(--rank-ethereal) 50%, var(--gold-color) 100%);
 }
 
 /* Astral Guardian - Gold and Emerald */
 .astral-guardian .rank-header::before {
-  background: linear-gradient(135deg, #00ff62 0%, #00ff62 50%, #ffe600 100%);
+    background: linear-gradient(135deg, var(--rank-astral) 0%, var(--rank-astral) 50%, var(--gold-color) 100%);
 }
 
 /* Server Upgrade Styles - Using colors from both ranks */
@@ -773,7 +786,7 @@ body.has-navbar { padding-top: 64px; }
 /* Shop Container */
 .shop-container {
   padding: 2rem 0 4rem 0; /* Add more padding at the bottom */
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  background: linear-gradient(135deg, var(--brand-dark) 0%, var(--dark-deep) 100%);
   min-height: 100vh;
 }
 
@@ -1456,7 +1469,7 @@ body.has-navbar { padding-top: 64px; }
 
 .auth-button i {
   font-size: 1.2rem;
-  color: #7289DA; /* Discord color */
+  color: var(--discord-color); /* Discord color */
 }
 
 .user-menu {
@@ -1531,8 +1544,9 @@ body.has-navbar { padding-top: 64px; }
 }
 
 .discord-tag {
-  color: var(--text-light);
-  font-size: 1.1rem;
+  color: var(--discord-color); /* Discord color */
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .profile-content {
@@ -2280,8 +2294,8 @@ footer {
 }
 
 .toast {
-    background: white;
-    color: #333;
+    background: var(--light-base);
+    color: var(--text-primary);
     padding: 12px 24px;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -3435,7 +3449,7 @@ footer {
     position: absolute;
     top: -5px;
     right: -5px;
-    background-color: #9d4edd; /* Purple color to match site theme */
+    background-color: var(--primary-color); /* Purple color to match site theme */
     color: var(--text-white);
     font-size: 0.7rem;
     font-weight: 600;
@@ -3446,7 +3460,7 @@ footer {
     align-items: center;
     justify-content: center;
     padding: 0;
-    box-shadow: 0 0 0 2px #3a3e8c; /* Border effect using the background color */
+    box-shadow: 0 0 0 2px var(--brand-dark); /* Border effect using the background color */
     z-index: 2;
 }
 
@@ -4232,16 +4246,16 @@ footer {
 }
 
 .edit-comment-btn:hover {
-    color: #3498db !important;
+    color: var(--brand-accent) !important;
 }
 
 .delete-comment-btn {
-    color: #e74c3c !important;
+    color: var(--sys-error) !important;
 }
 
 .delete-comment-btn:hover {
     background-color: rgba(231, 76, 60, 0.15) !important;
-    color: #c0392b !important;
+    color: var(--sys-error) !important;
     border-color: rgba(231, 76, 60, 0.3) !important;
 }
 
@@ -4286,12 +4300,12 @@ footer {
 }
 
 .btn-cancel-edit {
-    background-color: #f1f1f1;
-    color: #666;
+    background-color: var(--light-dim);
+    color: var(--text-secondary);
 }
 
 .btn-cancel-edit:hover {
-    background-color: #e1e1e1;
+    background-color: var(--light-alt);
 }
 
 .btn-submit-edit {
@@ -4426,8 +4440,8 @@ footer {
 
 .btn-cancel-reply {
     background: rgba(150, 150, 150, 0.2);
-    color: #ccc;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    border: 1px solid var(--border-dark);
     padding: 0.4rem 0.75rem;
     border-radius: 4px;
     cursor: pointer;
@@ -4437,7 +4451,7 @@ footer {
 
 .btn-submit-reply {
     background: var(--primary-color);
-    color: #fff;
+    color: var(--text-white);
     border: none;
     padding: 0.4rem 0.75rem;
     border-radius: 4px;
@@ -4907,4 +4921,610 @@ pre[class*="language-"] {
 #editMarkdownPreview pre[class*="language-"] code[class*="language-"] {
     white-space: pre !important;
     display: block;
+}
+
+/* Featured Ranks Slideshow for Homepage Sidebar */
+.featured-ranks-slideshow {
+    margin-bottom: var(--spacing-md);
+}
+
+.rank-slideshow-container {
+    position: relative;
+    width: 100%;
+    min-height: auto; /* Change from fixed min-height to auto */
+    overflow: visible; /* Change from hidden to visible to allow content to expand */
+    border-radius: var(--radius-md);
+}
+
+.rank-slideshow-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-darker);
+    z-index: 1;
+}
+
+.rank-slideshow-loading i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.slideshow-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--spacing-md);
+}
+
+.slideshow-nav-btn {
+    background: var(--bg-darker);
+    color: var(--text-white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-full);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slideshow-nav-btn:hover {
+    background-color: var(--primary-color);
+}
+
+.slideshow-indicators {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.slideshow-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.slideshow-indicator.active {
+    background-color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+/* Rank slide */
+.rank-slide {
+    position: relative; /* Change from absolute to relative positioning */
+    width: 100%;
+    height: auto; /* Auto height to adjust to content */
+    opacity: 0;
+    display: none; /* Hide slides by default */
+    transition: opacity 0.5s ease;
+    z-index: 0;
+}
+
+.rank-slide.active {
+    opacity: 1;
+    z-index: 2;
+    display: block; /* Show active slide */
+}
+
+.rank-slideshow-container .rank-features {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.rank-slideshow-container .rank-features::-webkit-scrollbar {
+    width: 4px;
+}
+
+.rank-slideshow-container .rank-features::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.rank-slideshow-container .rank-features::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Featured Ranks Slideshow styles */
+.featured-ranks-slideshow .card-button-container {
+    padding-top: 0;
+}
+
+.featured-ranks-slideshow .tab-bar-content{
+  height: auto;
+}
+
+
+/* Disable hover effects for rank cards in slideshow */
+.featured-ranks-slideshow .rank-card:hover {
+    transform: none;
+    box-shadow: var(--card-shadow);
+}
+
+/* Ensure rank cards scale with content */
+.rank-slideshow-container {
+    height: auto;
+    min-height: auto;
+}
+
+.rank-slide {
+    height: auto;
+    min-height: auto;
+    position: relative;
+    display: none;
+}
+
+.rank-slide.active {
+    display: block;
+}
+
+.rank-slideshow-container .rank-features {
+    max-height: none;
+    overflow-y: visible;
+    margin-bottom: 1rem;
+}
+
+/* Featured Ranks Slideshow Styles */
+
+
+.slideshow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: var(--bg-darker);
+  color: var(--text-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.slideshow-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.slideshow-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.slideshow-control-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 0.9rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.slideshow-control-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.slideshow-container {
+  position: relative;
+  padding: 16px;
+}
+
+.slideshow-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.slideshow-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.slideshow-indicator.active {
+  background-color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.slideshow-loading {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s ease-in-out infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Slides styling */
+.rank-slides {
+  position: relative;
+  min-height: 300px;
+}
+
+.rank-slide {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.rank-slide.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .rank-features li {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .featured-ranks-slideshow {
+    margin-bottom: 15px;
+  }
+  
+  .slideshow-header h3 {
+    font-size: 1rem;
+  }
+}
+
+/* Sidebar-specific rank card styles */
+.sidebar .rank-card {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: auto;
+}
+
+.sidebar .rank-header {
+  padding: 10px 14px;
+  height: auto;
+}
+
+.sidebar .rank-header h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.sidebar .rank-header i {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.sidebar .rank-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.sidebar .rank-info {
+  padding: 12px;
+}
+
+.sidebar .rank-category,
+.sidebar .rank-position {
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.sidebar .rank-features {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.sidebar .rank-features li {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.sidebar .rank-features i {
+  width: 18px;
+  margin-right: 4px;
+}
+
+.sidebar .card-button-container {
+  margin-top: 8px;
+}
+
+.sidebar .card-button-container .universal-btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+/* ... existing code ... */
+
+/* Featured Ranks Slideshow Styles */
+.featured-ranks-slideshow {
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.slideshow-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slideshow-nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 0.9rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.slideshow-nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.slideshow-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.slideshow-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.slideshow-indicator.active {
+  background-color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.rank-slideshow-loading {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rank-slideshow-container {
+  position: relative;
+  min-height: 280px;
+}
+
+/* Slides styling */
+.rank-slide {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.rank-slide.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Sidebar-specific rank card styles */
+.avatar-preview-section .rank-card {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  min-height: auto;
+}
+
+
+.avatar-preview-section .rank-header h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.avatar-preview-section .rank-header i {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.avatar-preview-section .rank-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 0;
+}
+
+.avatar-preview-section .rank-info {
+  padding: 12px;
+}
+
+.avatar-preview-section .rank-category,
+.avatar-preview-section .rank-position {
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.avatar-preview-section .rank-features {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.avatar-preview-section .rank-features li {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.avatar-preview-section .rank-features i {
+  width: 18px;
+  margin-right: 4px;
+}
+
+.avatar-preview-section .card-button-container {
+  margin-top: 8px;
+}
+
+.avatar-preview-section .card-button-container .universal-btn {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+
+/* ... existing code ... */
+
+.rank-slideshow-container {
+  position: relative;
+  min-height: auto;
+  height: auto;
+}
+
+/* Slides styling */
+.rank-slide {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  position: relative;
+  height: auto;
+}
+
+.rank-slide.active {
+  display: block;
+  opacity: 1;
+}
+
+.slideshow-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.slideshow-controls-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slideshow-controls-bottom .slideshow-indicators {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+}
+
+.slideshow-nav-btn {
+    background: var(--primary-color);
+    color: var(--text-white);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slideshow-nav-btn:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.slideshow-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.slideshow-indicator.active {
+    background-color: var(--primary-color);
+    transform: scale(1.2);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Center all rank information in the slideshow */
+.rank-slideshow-container .rank-card {
+    text-align: center;
+}
+
+.rank-slideshow-container .rank-header {
+    justify-content: center;
+    text-align: center;
+    line-height: 1;
+}
+
+.rank-slideshow-container .rank-header i {
+    margin: 0 auto 8px;
+}
+
+.rank-slideshow-container .rank-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 0rem;
+}
+
+.rank-slideshow-container .rank-category,
+.rank-slideshow-container .rank-position {
+    text-align: center;
+    width: 100%;
+}
+
+.rank-slideshow-container .rank-features {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left; /* Keep feature text left-aligned for readability */
+    display: inline-block; /* Allow the list to shrink to content width */
+}
+
+.rank-slideshow-container .card-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.rank-slideshow-container .rank-price {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }

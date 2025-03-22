@@ -242,11 +242,27 @@ app.get('/api/forums/:id', async (req, res) => {
     try {
         const forumId = req.params.id;
         
-        // Increment view counter
-        await supabase
+        // First get current views count
+        const { data: currentForum, error: getError } = await supabase
             .from('forums')
-            .update({ views: supabase.rpc('increment', { x: 1 }) })
-            .eq('id', forumId);
+            .select('views')
+            .eq('id', forumId)
+            .single();
+            
+        if (getError) {
+            console.error('Error fetching current forum views:', getError);
+        } else {
+            // Increment view counter with the correct approach
+            const currentViews = currentForum.views || 0;
+            const { error: updateError } = await supabase
+                .from('forums')
+                .update({ views: currentViews + 1 })
+                .eq('id', forumId);
+                
+            if (updateError) {
+                console.error('Error updating forum views:', updateError);
+            }
+        }
         
         // Get forum with user info
         const { data, error } = await supabase
