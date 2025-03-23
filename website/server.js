@@ -196,17 +196,22 @@ app.get('/auth/discord', (req, res, next) => {
     try {
         // Store the origin for use in callback
         req.session.returnTo = req.headers.referer || '/';
-        console.log('[AUTH] Redirecting to Discord. Origin:', req.headers.referer);
-        console.log('[AUTH] Host:', req.headers.host);
         
         // Get the correct callback URL based on the current domain
         const baseUrl = getBaseUrl(req);
         const callbackUrl = `${baseUrl}/auth/discord/callback`;
-        console.log('[AUTH] Callback URL will be:', callbackUrl);
         
-        // Check if we're on www subdomain and handle accordingly
-        const isWww = req.headers.host && req.headers.host.startsWith('www.');
-        console.log('[AUTH] Is www subdomain:', isWww);
+        // Enhanced debugging - log all relevant information
+        console.log('[AUTH] ====== DISCORD AUTH ATTEMPT ======');
+        console.log('[AUTH] Headers:', JSON.stringify({
+            host: req.headers.host,
+            referer: req.headers.referer,
+            'user-agent': req.headers['user-agent']
+        }));
+        console.log('[AUTH] Base URL:', baseUrl);
+        console.log('[AUTH] Callback URL:', callbackUrl);
+        console.log('[AUTH] Client ID:', process.env.DISCORD_CLIENT_ID);
+        console.log('[AUTH] Scopes:', scopes);
         
         // Create custom Discord strategy configuration for this request
         const discordOptions = {
@@ -214,50 +219,78 @@ app.get('/auth/discord', (req, res, next) => {
             clientSecret: process.env.DISCORD_CLIENT_SECRET,
             callbackURL: callbackUrl,
             scope: scopes,
-            // Set state parameter for added security (prevents CSRF)
             state: require('crypto').randomBytes(16).toString('hex')
         };
+        
+        console.log('[AUTH] Strategy options:', JSON.stringify({
+            clientID: discordOptions.clientID,
+            callbackURL: discordOptions.callbackURL,
+            scope: discordOptions.scope,
+            // Don't log secret
+            clientSecret: '********'
+        }));
+        
+        // Generate the auth URL that Discord will redirect to for comparison
+        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`;
+        console.log('[AUTH] Full authorization URL:', authUrl);
+        console.log('[AUTH] =================================');
         
         // Use custom passport authenticate with our configuration
         passport.authenticate('discord', discordOptions)(req, res, next);
     } catch (error) {
         console.error('[AUTH] Error during Discord authentication:', error);
-        res.redirect('/?auth_error=' + encodeURIComponent('Authentication setup failed'));
+        res.redirect('/?auth_error=' + encodeURIComponent('Authentication setup failed: ' + error.message));
     }
 });
 
-app.get('/auth/discord/callback',
-    (req, res, next) => {
-        console.log('[AUTH] Received callback from Discord', req.url);
-        next();
-    },
-    (req, res, next) => {
-        passport.authenticate('discord', (err, user, info) => {
-            if (err) {
-                console.error('[AUTH] Error during authentication:', err);
-                return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
-            }
-            
-            if (!user) {
-                console.error('[AUTH] Authentication failed, no user returned');
-                return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
-            }
-            
-            req.logIn(user, (err) => {
-                if (err) {
-                    console.error('[AUTH] Login error:', err);
-                    return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
-                }
-                
-                // Redirect to the original site or default to profile
-                const returnTo = req.session.returnTo || '/profile.html';
-                delete req.session.returnTo;
-                console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
-                return res.redirect(returnTo);
-            });
-        })(req, res, next);
+// Raw callback URL handler for testing
+app.get('/auth/discord/callback', (req, res, next) => {
+    // Log the raw request details to see exactly what Discord is sending
+    console.log('[AUTH] ====== DISCORD CALLBACK RECEIVED ======');
+    console.log('[AUTH] Query params:', JSON.stringify(req.query));
+    console.log('[AUTH] Headers:', JSON.stringify({
+        host: req.headers.host,
+        referer: req.headers.referer,
+        'user-agent': req.headers['user-agent']
+    }));
+    console.log('[AUTH] ======================================');
+    
+    // If there's an error in the query parameters, handle it
+    if (req.query.error) {
+        console.error('[AUTH] Error from Discord callback:', req.query.error);
+        console.error('[AUTH] Error description:', req.query.error_description);
+        return res.redirect('/?auth_error=' + encodeURIComponent(`Discord error: ${req.query.error} - ${req.query.error_description || ''}`));
     }
-);
+    
+    // Continue with normal authentication flow
+    next();
+}, (req, res, next) => {
+    passport.authenticate('discord', (err, user, info) => {
+        // Rest of your authentication handler code
+        if (err) {
+            console.error('[AUTH] Error during authentication:', err);
+            return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+        }
+        
+        if (!user) {
+            console.error('[AUTH] Authentication failed, no user returned');
+            return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+        }
+        
+        req.logIn(user, (err) => {
+            if (err) {
+                console.error('[AUTH] Login error:', err);
+                return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
+            }
+            
+            // Redirect to the original site or default to profile
+            const returnTo = req.session.returnTo || '/profile.html';
+            delete req.session.returnTo;
+            console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
+            return res.redirect(returnTo);
+        });
+    })(req, res, next);
+});
 
 app.get('/auth/logout', (req, res) => {
     req.logout(() => {
@@ -1543,6 +1576,67 @@ app.get('/debug-auth', (req, res) => {
         sessionExists: !!req.session,
         cookieConfig: sessionConfig.cookie
     });
+});
+
+// Add this endpoint after your existing debug endpoint
+app.get('/debug-redirect', (req, res) => {
+    // Get the exact callback URL that would be used for Discord
+    const baseUrl = getBaseUrl(req);
+    const callbackUrl = `${baseUrl}/auth/discord/callback`;
+    
+    // Create a test authorization URL
+    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`;
+    
+    // Return detailed information
+    res.send(`
+    <html>
+        <head>
+            <title>OAuth Debug</title>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; }
+                pre { background: #f4f4f4; padding: 10px; overflow: auto; }
+                .url { word-break: break-all; }
+            </style>
+        </head>
+        <body>
+            <h1>OAuth Redirect Debug</h1>
+            <h2>Your Environment:</h2>
+            <ul>
+                <li><strong>Host:</strong> ${req.headers.host}</li>
+                <li><strong>Protocol:</strong> ${req.protocol}</li>
+                <li><strong>Base URL:</strong> ${baseUrl}</li>
+                <li><strong>NODE_ENV:</strong> ${process.env.NODE_ENV || 'not set'}</li>
+            </ul>
+            
+            <h2>Generated Callback URL:</h2>
+            <pre class="url">${callbackUrl}</pre>
+            <p>This exact string must be added to your Discord Developer Portal.</p>
+            
+            <h2>Full Authorization URL (encoded):</h2>
+            <pre class="url">${authUrl}</pre>
+            
+            <h2>What to check:</h2>
+            <ol>
+                <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+                <li>Select your application (ID: ${process.env.DISCORD_CLIENT_ID})</li>
+                <li>Go to OAuth2 → Redirects</li>
+                <li>Add the <strong>exact</strong> callback URL shown above</li>
+                <li>Save Changes</li>
+            </ol>
+            
+            <h3>Common Issues:</h3>
+            <ul>
+                <li>Extra or missing slashes</li>
+                <li>Incorrect protocol (http vs https)</li>
+                <li>Spaces or special characters</li>
+                <li>Changes not saved in Discord Developer Portal</li>
+            </ul>
+            
+            <h2>Test Your Configuration:</h2>
+            <p><a href="/auth/discord">Try authenticating now</a></p>
+        </body>
+    </html>
+    `);
 });
 
 // Error logging endpoint
