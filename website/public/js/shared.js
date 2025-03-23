@@ -191,11 +191,16 @@ function updateThemeToggleTooltip(toggleButton) {
 
 // Get base URL based on environment
 function getBaseUrl() {
+    // Use the current protocol and hostname, strip www if present
+    const protocol = window.location.protocol;
     const hostname = window.location.hostname;
+    
     if (hostname === 'localhost') {
         return 'http://localhost:3000';
     }
-    return 'https://enderfall.co.uk';
+    
+    // For production, use the current protocol and non-www domain
+    return `${protocol}//enderfall.co.uk`;
 }
 
 // Authentication handling

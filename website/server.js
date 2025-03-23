@@ -55,6 +55,10 @@ app.use(cors({
 // Handle redirects from www to non-www
 app.use((req, res, next) => {
     if (req.hostname.startsWith('www.')) {
+        // Skip redirection for auth paths as they need to work directly with both domains
+        if (req.originalUrl.startsWith('/auth/')) {
+            return next();
+        }
         const newUrl = `https://enderfall.co.uk${req.originalUrl}`;
         return res.redirect(301, newUrl);
     }

@@ -338,7 +338,10 @@ function setupAvatarPreview() {
             if (linkAccountBtn) {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
-                linkAccountBtn.onclick = () => window.location.href = '/auth/discord';
+                linkAccountBtn.onclick = () => {
+                    const baseUrl = getBaseUrl();
+                    window.location.href = `${baseUrl}/auth/discord`;
+                };
             }
             if (linkInfo) {
                 linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';
@@ -372,7 +375,8 @@ function setupAvatarPreview() {
                             linkAccountBtn.style.display = 'flex';
                             linkAccountBtn.innerHTML = '<i class="fas fa-link"></i> Link Minecraft Account';
                             linkAccountBtn.onclick = () => {
-                                window.location.href = '/profile.html?tab=settings&action=link-minecraft';
+                                const baseUrl = getBaseUrl();
+                                window.location.href = `${baseUrl}/profile.html?tab=settings&action=link-minecraft`;
                             };
                         }
                         if (linkInfo) {
@@ -401,7 +405,10 @@ function setupAvatarPreview() {
             if (linkAccountBtn) {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
-                linkAccountBtn.onclick = () => window.location.href = '/auth/discord';
+                linkAccountBtn.onclick = () => {
+                    const baseUrl = getBaseUrl();
+                    window.location.href = `${baseUrl}/auth/discord`;
+                };
             }
             if (linkInfo) {
                 linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';

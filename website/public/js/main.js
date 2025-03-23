@@ -198,7 +198,8 @@ function handleAuth() {
     if (isAuthenticated) {
         window.location.href = '/profile.html';
     } else {
-        window.location.href = '/auth/discord';
+        const baseUrl = getBaseUrl();
+        window.location.href = `${baseUrl}/auth/discord`;
     }
 }
 
@@ -225,7 +226,10 @@ async function handlePurchase(event) {
 
     if (!isAuthenticated) {
         showNotification('Please login with Discord first', 'error');
-        setTimeout(() => window.location.href = '/auth/discord', 2000);
+        setTimeout(() => {
+            const baseUrl = getBaseUrl();
+            window.location.href = `${baseUrl}/auth/discord`;
+        }, 2000);
         return;
     }
 
