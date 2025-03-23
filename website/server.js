@@ -11,26 +11,28 @@ const fs = require('fs');
 
 // Helper function to determine environment
 function getBaseUrl(req) {
-    // Check if running on Vercel
+    // Production environment detection
+    if (process.env.NODE_ENV === 'production') {
+        // Check if we have a custom host header
+        if (req && req.headers && req.headers.host) {
+            // Handle both www and non-www versions of the domain
+            if (req.headers.host.includes('enderfall.co.uk')) {
+                if (req.headers.host.startsWith('www.')) {
+                    return 'https://www.enderfall.co.uk';
+                } else {
+                    return 'https://enderfall.co.uk';
+                }
+            }
+        }
+        
+        // Default to non-www in production if we couldn't determine from headers
+        console.log('[URL] No matching host header found, defaulting to enderfall.co.uk');
+        return 'https://enderfall.co.uk';
+    }
+    
+    // Check if running on Vercel preview deployment
     if (process.env.VERCEL_URL) {
         return `https://${process.env.VERCEL_URL}`;
-    }
-    
-    // Check if we have a custom host header that might be set by Vercel
-    if (req && req.headers && req.headers.host) {
-        // Handle both www and non-www versions of the domain
-        if (req.headers.host === 'www.enderfall.co.uk') {
-            return 'https://www.enderfall.co.uk';
-        }
-        if (req.headers.host === 'enderfall.co.uk') {
-            return 'https://enderfall.co.uk';
-        }
-    }
-    
-    // Check if in production environment
-    if (process.env.NODE_ENV === 'production') {
-        // Default to non-www in production if we couldn't determine from headers
-        return 'https://enderfall.co.uk';
     }
     
     // In development, use localhost
@@ -91,7 +93,9 @@ const sessionConfig = {
 
 // In production, set the domain to work with both www and non-www
 if (process.env.NODE_ENV === 'production') {
-    sessionConfig.cookie.domain = '.enderfall.co.uk';
+    // Use a domain that works for both www and non-www
+    sessionConfig.cookie.domain = 'enderfall.co.uk';
+    console.log('[SESSION] Using production cookie domain:', sessionConfig.cookie.domain);
 }
 
 app.use(session(sessionConfig));
@@ -192,9 +196,11 @@ passport.use(new DiscordStrategy({
 app.get('/auth/discord', (req, res, next) => {
     try {
         // Store the origin for use in callback
-        req.session.returnTo = req.headers.referer || '/';
+        // Make sure we don't store localhost as the return URL
+        const referer = req.headers.referer || '/';
+        req.session.returnTo = referer.includes('localhost') ? '/' : referer;
         
-        // Log debugging info without changing options
+        const baseUrl = getBaseUrl(req);
         console.log('[AUTH] ====== DISCORD AUTH ATTEMPT ======');
         console.log('[AUTH] Headers:', JSON.stringify({
             host: req.headers.host,
@@ -202,7 +208,9 @@ app.get('/auth/discord', (req, res, next) => {
             'user-agent': req.headers['user-agent']
         }));
         console.log('[AUTH] Environment:', process.env.NODE_ENV);
+        console.log('[AUTH] Base URL detected as:', baseUrl);
         console.log('[AUTH] Using redirect URI:', process.env.DISCORD_REDIRECT_URI);
+        console.log('[AUTH] returnTo set to:', req.session.returnTo);
         console.log('[AUTH] =================================');
         
         // Use the strategy as configured without custom options
@@ -254,8 +262,15 @@ app.get('/auth/discord/callback', (req, res, next) => {
             }
             
             // Redirect to the original site or default to profile
-            const returnTo = req.session.returnTo || '/profile.html';
+            let returnTo = req.session.returnTo || '/profile.html';
             delete req.session.returnTo;
+            
+            // Fix for localhost redirect - ensure we stay on the same domain
+            if (returnTo.includes('localhost')) {
+                console.log('[AUTH] Fixing localhost redirect to stay on current domain');
+                returnTo = '/profile.html';
+            }
+            
             console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
             return res.redirect(returnTo);
         });
