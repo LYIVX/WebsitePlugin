@@ -18,13 +18,18 @@ function getBaseUrl(req) {
     
     // Check if we have a custom host header that might be set by Vercel
     if (req && req.headers && req.headers.host) {
-        if (req.headers.host.includes('enderfall.co.uk')) {
-            return `https://${req.headers.host}`;
+        // Handle both www and non-www versions of the domain
+        if (req.headers.host === 'www.enderfall.co.uk') {
+            return 'https://www.enderfall.co.uk';
+        }
+        if (req.headers.host === 'enderfall.co.uk') {
+            return 'https://enderfall.co.uk';
         }
     }
     
     // Check if in production environment
     if (process.env.NODE_ENV === 'production') {
+        // Default to non-www in production if we couldn't determine from headers
         return 'https://enderfall.co.uk';
     }
     
@@ -70,7 +75,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.static('public'));
-app.use(session({
+
+// Setup session middleware
+const sessionConfig = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
@@ -78,10 +85,16 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production',
         maxAge: 60000 * 60 * 24, // 24 hours
         sameSite: 'lax',
-        httpOnly: true,
-        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
+        httpOnly: true
     }
-}));
+};
+
+// In production, set the domain to work with both www and non-www
+if (process.env.NODE_ENV === 'production') {
+    sessionConfig.cookie.domain = '.enderfall.co.uk';
+}
+
+app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -180,12 +193,36 @@ passport.use(new DiscordStrategy({
 
 // Auth routes
 app.get('/auth/discord', (req, res, next) => {
-    // Store the origin for use in callback
-    req.session.returnTo = req.headers.referer || '/';
-    console.log('[AUTH] Redirecting to Discord. Origin:', req.headers.referer);
-    console.log('[AUTH] Callback URL will be:', getBaseUrl(req) + '/auth/discord/callback');
-    next();
-}, passport.authenticate('discord'));
+    try {
+        // Store the origin for use in callback
+        req.session.returnTo = req.headers.referer || '/';
+        console.log('[AUTH] Redirecting to Discord. Origin:', req.headers.referer);
+        console.log('[AUTH] Host:', req.headers.host);
+        
+        // Get the correct callback URL based on the current domain
+        const baseUrl = getBaseUrl(req);
+        const callbackUrl = `${baseUrl}/auth/discord/callback`;
+        console.log('[AUTH] Callback URL will be:', callbackUrl);
+        
+        // Check if we're on www subdomain and handle accordingly
+        const isWww = req.headers.host && req.headers.host.startsWith('www.');
+        console.log('[AUTH] Is www subdomain:', isWww);
+        
+        // Create custom Discord strategy configuration for this request
+        const discordOptions = {
+            clientID: process.env.DISCORD_CLIENT_ID,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET,
+            callbackURL: callbackUrl,
+            scope: scopes
+        };
+        
+        // Use custom passport authenticate with our configuration
+        passport.authenticate('discord', discordOptions)(req, res, next);
+    } catch (error) {
+        console.error('[AUTH] Error during Discord authentication:', error);
+        res.redirect('/?auth_error=' + encodeURIComponent('Authentication setup failed'));
+    }
+});
 
 app.get('/auth/discord/callback',
     (req, res, next) => {
@@ -1489,6 +1526,27 @@ app.get('/api/status', (req, res) => {
             referer: req.headers.referer || 'none'
         }
     });
+});
+
+// Debug route for Discord configuration
+app.get('/debug-auth', (req, res) => {
+    const baseUrl = getBaseUrl(req);
+    res.json({
+        discordClientId: process.env.DISCORD_CLIENT_ID,
+        discordRedirectUri: process.env.DISCORD_REDIRECT_URI,
+        calculatedRedirectUri: `${baseUrl}/auth/discord/callback`,
+        host: req.headers.host,
+        environment: process.env.NODE_ENV,
+        isAuthenticated: req.isAuthenticated(),
+        sessionExists: !!req.session,
+        cookieConfig: sessionConfig.cookie
+    });
+});
+
+// Error logging endpoint
+app.post('/api/log-error', (req, res) => {
+    console.error('[ERROR] Client-side error:', JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
 });
 
 // Serve static files

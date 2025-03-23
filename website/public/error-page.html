@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Enderfall</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .error-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            text-align: center;
+        }
+        .error-code {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #e74c3c;
+        }
+        .error-message {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .error-details {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            text-align: left;
+            color: #555;
+        }
+        .back-button {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1 class="error-code">Error</h1>
+        <div class="error-message">Something went wrong</div>
+        
+        <a href="/" class="back-button">Back to Home</a>
+        
+        <div class="error-details" id="errorDetails">
+            <h3>Error Details</h3>
+            <div id="errorInfo">Loading error information...</div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Extract error information from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorCode = urlParams.get('code') || 'Unknown';
+            const errorId = urlParams.get('id') || 'None';
+            const errorMessage = urlParams.get('message') || 'Unknown error';
+            
+            // Update the page with error details
+            document.querySelector('.error-code').textContent = `Error: ${errorCode}`;
+            document.querySelector('.error-message').textContent = errorMessage;
+            
+            // Display detailed error info
+            const errorInfo = document.getElementById('errorInfo');
+            errorInfo.innerHTML = `
+                <p><strong>Error Code:</strong> ${errorCode}</p>
+                <p><strong>Error ID:</strong> ${errorId}</p>
+                <p><strong>Path:</strong> ${window.location.pathname}</p>
+                <p><strong>Full URL:</strong> ${window.location.href}</p>
+                <p><strong>Host:</strong> ${window.location.host}</p>
+                <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+            `;
+            
+            // Send error info to server for logging
+            fetch('/api/log-error', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    code: errorCode,
+                    id: errorId,
+                    path: window.location.pathname,
+                    url: window.location.href,
+                    host: window.location.host,
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                })
+            }).catch(error => console.error('Error logging:', error));
+        });
+    </script>
+</body>
+</html> 
