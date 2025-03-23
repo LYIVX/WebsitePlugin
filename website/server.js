@@ -94,9 +94,9 @@ const sessionConfig = {
 
 // In production, set the domain to work with both www and non-www
 if (process.env.NODE_ENV === 'production') {
-    // Use a domain that works for both www and non-www
-    sessionConfig.cookie.domain = 'enderfall.co.uk';
-    console.log('[SESSION] Using production cookie domain:', sessionConfig.cookie.domain);
+    // Use a leading dot for domain-wide cookies that work across all subdomains
+    sessionConfig.cookie.domain = '.enderfall.co.uk';
+    console.log('[SESSION] Using production cookie domain with leading dot:', sessionConfig.cookie.domain);
 }
 
 app.use(session(sessionConfig));
@@ -332,7 +332,7 @@ app.get('/auth/logout', (req, res) => {
             // Clear auth cookie explicitly
             res.clearCookie('connect.sid', {
                 path: '/',
-                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined
+                domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
             });
             
             // Redirect to the referring page or home
