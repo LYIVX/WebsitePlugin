@@ -117,7 +117,8 @@ let callbackURL = process.env.DISCORD_REDIRECT_URI;
 if (process.env.NODE_ENV === 'development') {
     callbackURL = 'http://localhost:3000/auth/discord/callback';
     console.log('[AUTH] Using development callback URL:', callbackURL);
-} else {
+} else if (process.env.NODE_ENV === 'production') {
+    callbackURL = 'https://enderfall.co.uk/auth/discord/callback';
     console.log('[AUTH] Using production callback URL:', callbackURL);
 }
 
