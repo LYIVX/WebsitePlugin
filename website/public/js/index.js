@@ -339,7 +339,16 @@ function setupAvatarPreview() {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
                 linkAccountBtn.onclick = () => {
-                    const baseUrl = getBaseUrl();
+                    const protocol = window.location.protocol;
+                    const hostname = window.location.hostname === 'www.enderfall.co.uk' 
+                        ? 'enderfall.co.uk' 
+                        : window.location.hostname;
+                    
+                    // Create base URL with the correct domain
+                    const baseUrl = hostname === 'localhost' 
+                        ? 'http://localhost:3000' 
+                        : `${protocol}//${hostname}`;
+                    
                     window.location.href = `${baseUrl}/auth/discord`;
                 };
             }
@@ -406,7 +415,16 @@ function setupAvatarPreview() {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
                 linkAccountBtn.onclick = () => {
-                    const baseUrl = getBaseUrl();
+                    const protocol = window.location.protocol;
+                    const hostname = window.location.hostname === 'www.enderfall.co.uk' 
+                        ? 'enderfall.co.uk' 
+                        : window.location.hostname;
+                    
+                    // Create base URL with the correct domain
+                    const baseUrl = hostname === 'localhost' 
+                        ? 'http://localhost:3000' 
+                        : `${protocol}//${hostname}`;
+                    
                     window.location.href = `${baseUrl}/auth/discord`;
                 };
             }

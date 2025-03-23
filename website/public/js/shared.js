@@ -366,7 +366,18 @@ async function handleAuth() {
         // Clear the logged out flag when attempting to log in
         localStorage.removeItem('logged_out');
         
-        const baseUrl = getBaseUrl();
+        // Always use the non-www domain for auth, even if we're on www
+        const protocol = window.location.protocol;
+        const hostname = window.location.hostname === 'www.enderfall.co.uk' 
+            ? 'enderfall.co.uk' 
+            : window.location.hostname;
+        
+        // Create base URL with the correct domain
+        const baseUrl = hostname === 'localhost' 
+            ? 'http://localhost:3000' 
+            : `${protocol}//${hostname}`;
+            
+        console.log('Auth request using URL:', `${baseUrl}/auth/discord`);
         window.location.href = `${baseUrl}/auth/discord`;
     } catch (error) {
         hideLoading();
