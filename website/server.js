@@ -42,6 +42,9 @@ function getBaseUrl(req) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - important for proper HTTPS detection behind proxies like Vercel
+app.set('trust proxy', 1);
+
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -71,9 +74,29 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 })();
 
 // Middleware
+const allowedOrigins = [
+    'http://localhost:3000', 
+    'https://enderfall.co.uk', 
+    'https://www.enderfall.co.uk',
+    'http://enderfall.co.uk',  // Also allow HTTP version
+    'http://www.enderfall.co.uk'
+];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://enderfall.co.uk', 'https://www.enderfall.co.uk'],
-    credentials: true
+    origin: function(origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('[CORS] Blocked request from origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.static('public'));
@@ -84,8 +107,8 @@ const sessionConfig = {
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days (increased from 24 hours)
+        secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         sameSite: 'lax',
         httpOnly: true,
         path: '/'
@@ -1759,6 +1782,93 @@ app.get('*', (req, res) => {
     // For all other routes, send the index.html file
     console.log(`[ROUTE] Serving index.html for path: ${req.path}`);
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Test cookie storage route
+app.get('/test-cookie', (req, res) => {
+    // Set a test cookie
+    res.cookie('test_cookie', 'cookie_value', {
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        httpOnly: false, // Make it readable by client-side JS
+        secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
+        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
+        path: '/',
+        sameSite: 'lax'
+    });
+    
+    // Count session views
+    req.session.views = (req.session.views || 0) + 1;
+    
+    res.send(`
+    <html>
+        <head>
+            <title>Cookie Test</title>
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                pre { background: #f4f4f4; padding: 10px; }
+                .success { color: green; }
+                .error { color: red; }
+            </style>
+        </head>
+        <body>
+            <h1>Cookie Test Page</h1>
+            <p>This page tests whether cookies are being properly set and stored.</p>
+            
+            <h2>Session Status:</h2>
+            <pre>Session ID: ${req.sessionID}
+Views: ${req.session.views}
+Authenticated: ${req.isAuthenticated()}</pre>
+            
+            <h2>Cookie Test:</h2>
+            <p>A test cookie named 'test_cookie' has been set. You should see it in your browser's developer tools.</p>
+            
+            <h2>All Cookies:</h2>
+            <pre>${req.headers.cookie || 'No cookies found'}</pre>
+            
+            <h2>Environment:</h2>
+            <pre>NODE_ENV: ${process.env.NODE_ENV || 'not set'}
+Protocol: ${req.protocol}
+Secure: ${req.secure ? 'Yes' : 'No'}
+Headers:
+  x-forwarded-proto: ${req.headers['x-forwarded-proto'] || 'not set'}
+  host: ${req.headers.host || 'not set'}</pre>
+            
+            <script>
+                // Check for client-side readable cookies
+                function checkCookies() {
+                    const testCookie = document.cookie.includes('test_cookie');
+                    const result = document.getElementById('cookie-result');
+                    
+                    if (testCookie) {
+                        result.textContent = 'Test cookie found! Cookie storage is working correctly.';
+                        result.className = 'success';
+                    } else {
+                        result.textContent = 'Test cookie NOT found. There may be an issue with cookie storage.';
+                        result.className = 'error';
+                    }
+                    
+                    document.getElementById('all-cookies').textContent = document.cookie;
+                }
+                
+                // Run after a short delay to ensure cookie is set
+                setTimeout(checkCookies, 500);
+            </script>
+            
+            <h2>Client-Side Cookie Check:</h2>
+            <p id="cookie-result">Checking...</p>
+            
+            <h3>All Client-Side Readable Cookies:</h3>
+            <pre id="all-cookies">Loading...</pre>
+            
+            <h2>Next Steps:</h2>
+            <ul>
+                <li><a href="/auth/discord">Try logging in</a></li>
+                <li><a href="/debug-session">View detailed session debug</a></li>
+                <li><a href="/">Return to home page</a></li>
+            </ul>
+        </body>
+    </html>
+    `);
 });
 
 // Start server
