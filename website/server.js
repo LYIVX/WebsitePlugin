@@ -111,10 +111,7 @@ const scopes = ['identify', 'email', 'guilds.join'];
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: (req) => {
-        const baseUrl = getBaseUrl(req);
-        return `${baseUrl}/auth/discord/callback`;
-    },
+    callbackURL: process.env.DISCORD_REDIRECT_URI,
     scope: scopes,
     passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
@@ -197,46 +194,19 @@ app.get('/auth/discord', (req, res, next) => {
         // Store the origin for use in callback
         req.session.returnTo = req.headers.referer || '/';
         
-        // Get the correct callback URL based on the current domain
-        const baseUrl = getBaseUrl(req);
-        const callbackUrl = `${baseUrl}/auth/discord/callback`;
-        
-        // Enhanced debugging - log all relevant information
+        // Log debugging info without changing options
         console.log('[AUTH] ====== DISCORD AUTH ATTEMPT ======');
         console.log('[AUTH] Headers:', JSON.stringify({
             host: req.headers.host,
             referer: req.headers.referer,
             'user-agent': req.headers['user-agent']
         }));
-        console.log('[AUTH] Base URL:', baseUrl);
-        console.log('[AUTH] Callback URL:', callbackUrl);
-        console.log('[AUTH] Client ID:', process.env.DISCORD_CLIENT_ID);
-        console.log('[AUTH] Scopes:', scopes);
-        
-        // Create custom Discord strategy configuration for this request
-        const discordOptions = {
-            clientID: process.env.DISCORD_CLIENT_ID,
-            clientSecret: process.env.DISCORD_CLIENT_SECRET,
-            callbackURL: callbackUrl,
-            scope: scopes,
-            state: require('crypto').randomBytes(16).toString('hex')
-        };
-        
-        console.log('[AUTH] Strategy options:', JSON.stringify({
-            clientID: discordOptions.clientID,
-            callbackURL: discordOptions.callbackURL,
-            scope: discordOptions.scope,
-            // Don't log secret
-            clientSecret: '********'
-        }));
-        
-        // Generate the auth URL that Discord will redirect to for comparison
-        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`;
-        console.log('[AUTH] Full authorization URL:', authUrl);
+        console.log('[AUTH] Environment:', process.env.NODE_ENV);
+        console.log('[AUTH] Using redirect URI:', process.env.DISCORD_REDIRECT_URI);
         console.log('[AUTH] =================================');
         
-        // Use custom passport authenticate with our configuration
-        passport.authenticate('discord', discordOptions)(req, res, next);
+        // Use the strategy as configured without custom options
+        passport.authenticate('discord')(req, res, next);
     } catch (error) {
         console.error('[AUTH] Error during Discord authentication:', error);
         res.redirect('/?auth_error=' + encodeURIComponent('Authentication setup failed: ' + error.message));
