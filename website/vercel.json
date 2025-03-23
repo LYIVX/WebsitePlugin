@@ -13,7 +13,17 @@
     { "source": "/(.*)", "destination": "/server.js" }
   ],
   "redirects": [
-    { "source": "https://www.enderfall.co.uk/:path*", "destination": "https://enderfall.co.uk/:path*", "permanent": true }
+    { 
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.enderfall.co.uk"
+        }
+      ],
+      "destination": "https://enderfall.co.uk/:path*",
+      "permanent": true
+    }
   ],
   "headers": [
     {
