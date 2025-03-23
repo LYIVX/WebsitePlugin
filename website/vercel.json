@@ -7,15 +7,15 @@
     }
   ],
   "redirects": [
-    { 
-      "source": "/(.*)",
+    {
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "www.enderfall.co.uk"
         }
       ],
-      "destination": "https://enderfall.co.uk/$1",
+      "destination": "https://enderfall.co.uk/:path*",
       "permanent": true
     }
   ],
