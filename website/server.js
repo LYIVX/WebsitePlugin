@@ -54,11 +54,12 @@ app.use(cors({
 
 // Handle redirects from www to non-www
 app.use((req, res, next) => {
+    // Don't redirect auth routes - allow them to work on both www and non-www
+    if (req.path.startsWith('/auth/')) {
+        return next();
+    }
+    
     if (req.hostname.startsWith('www.')) {
-        // Skip redirection for auth paths as they need to work directly with both domains
-        if (req.originalUrl.startsWith('/auth/')) {
-            return next();
-        }
         const newUrl = `https://enderfall.co.uk${req.originalUrl}`;
         return res.redirect(301, newUrl);
     }
@@ -177,13 +178,24 @@ passport.use(new DiscordStrategy({
 }));
 
 // Auth routes
-app.get('/auth/discord', passport.authenticate('discord'));
+app.get('/auth/discord', (req, res, next) => {
+    console.log('Discord auth request initiated from:', req.hostname);
+    console.log('Original URL:', req.originalUrl);
+    console.log('Headers:', req.headers);
+    passport.authenticate('discord')(req, res, next);
+});
 
 app.get('/auth/discord/callback',
-    passport.authenticate('discord', {
-        failureRedirect: '/'
-    }),
+    (req, res, next) => {
+        console.log('Discord callback received from:', req.hostname);
+        console.log('Code present:', !!req.query.code);
+        console.log('Original URL:', req.originalUrl);
+        passport.authenticate('discord', {
+            failureRedirect: '/'
+        })(req, res, next);
+    },
     (req, res) => {
+        console.log('Authentication successful, redirecting to profile page');
         res.redirect('/profile.html');
     }
 );

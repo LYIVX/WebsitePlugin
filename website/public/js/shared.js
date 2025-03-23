@@ -191,7 +191,7 @@ function updateThemeToggleTooltip(toggleButton) {
 
 // Get base URL based on environment
 function getBaseUrl() {
-    // Use the current protocol and hostname, strip www if present
+    // Use the current protocol and hostname to preserve www or non-www
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
     
@@ -199,8 +199,8 @@ function getBaseUrl() {
         return 'http://localhost:3000';
     }
     
-    // For production, use the current protocol and non-www domain
-    return `${protocol}//enderfall.co.uk`;
+    // For production, use the current protocol and current hostname
+    return `${protocol}//${hostname}`;
 }
 
 // Authentication handling
