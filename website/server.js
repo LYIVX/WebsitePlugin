@@ -1310,9 +1310,9 @@ app.get('/debug-auth-status', (req, res) => {
 
 // For local development
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
 }
 
 // Export the Express app for Vercel
