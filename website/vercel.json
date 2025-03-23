@@ -12,6 +12,9 @@
     { "source": "/debug-(.*)", "destination": "/server.js" },
     { "source": "/(.*)", "destination": "/server.js" }
   ],
+  "redirects": [
+    { "source": "https://www.enderfall.co.uk/:path*", "destination": "https://enderfall.co.uk/:path*", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -27,6 +30,10 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss: https:; frame-src 'self'"
         }
       ]
     }
