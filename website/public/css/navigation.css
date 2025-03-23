@@ -88,6 +88,57 @@
   border-left: 1px solid var(--theme-border);
 }
 
+.user-menu {
+  position: relative;
+  z-index: 2;
+  background: var(--theme-card-bg);
+  transition: transform 0.3s ease;
+}
+
+.user-menu-container {
+  position: relative;
+  height: 40px;
+  border-left: 1px solid var(--theme-border);
+  display: none; /* Hidden by default, shown when user is logged in */
+  overflow: hidden;
+}
+
+.logout-btn {
+  position: absolute;
+  top: 0;
+  left: -40px; /* Initially hidden off to the left */
+  color: var(--theme-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+  background: var(--theme-card-bg);
+  z-index: 1;
+}
+
+.logout-btn:hover {
+  color: var(--sys-error);
+  background: var(--theme-hover);
+}
+
+.logout-btn i {
+  font-size: 1rem;
+}
+
+/* Show logout button when hovering over user menu container */
+.user-menu-container:hover .logout-btn {
+  left: 0;
+}
+
+/* When hovering, move the user menu to the right */
+.user-menu-container:hover .user-menu {
+  transform: translateX(40px);
+}
+
 .nav-link:hover, .auth-button:hover, .theme-toggle:hover { color: var(--theme-text-primary); background: var(--theme-hover); }
 .nav-link.active, .auth-button.active, .theme-toggle.active { color: var(--theme-text-primary); background: var(--theme-active); }
 
@@ -134,16 +185,6 @@
 .user-menu .username {
   color: var(--theme-text-secondary);
   font-weight: 600;
-}
-
-/* Hide dropdown content */
-.dropdown-content {
-  display: none;
-}
-
-/* Remove dropdown hover effect */
-.user-menu:hover .dropdown-content {
-  display: none;
 }
 
 /* Footer Styles */
@@ -261,7 +302,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 1rem;
   background: transparent;
   cursor: pointer;
   color: var(--theme-text-secondary);

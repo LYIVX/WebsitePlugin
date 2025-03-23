@@ -42,13 +42,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Setup logout button
         const logoutButton = document.getElementById('logoutButton');
         if (logoutButton) {
-            logoutButton.addEventListener('click', handleLogout);
+            console.log('Found logout button:', logoutButton.outerHTML);
+            logoutButton.style.display = 'flex'; // Make sure it's visible
+            logoutButton.addEventListener('click', function(e) {
+                console.log('Logout button clicked');
+                handleLogout(e);
+            });
+        } else {
+            console.warn('Logout button not found in the DOM');
+        }
+
+        // Check for user menu
+        const userMenu = document.querySelector('.user-menu');
+        if (userMenu) {
+            console.log('User menu found:', userMenu.outerHTML);
+        } else {
+            console.warn('User menu not found in the DOM');
         }
 
         // Initialize auth state
         await checkAuthState();
     } catch (error) {
-        handleError(error, 'Failed to initialize page');
+        console.error('Failed to initialize shared functionality:', error);
+        showToast('Failed to initialize UI', 'error');
     }
 });
 
@@ -203,15 +219,29 @@ function updateUIForUser(user) {
     // Clear the logged out flag when user is authenticated
     localStorage.removeItem('logged_out');
     
+    console.log('Updating UI for user:', user);
+    
     // Update auth button and user menu
     const authButton = document.querySelector('.auth-button');
     const userMenu = document.querySelector('.user-menu');
+    const userMenuContainer = document.querySelector('.user-menu-container');
     const profileLink = document.querySelector('[data-page="profile"]');
     const footerProfileLink = document.querySelector('#footer-profile-link');
     const userAvatar = document.querySelector('.user-avatar');
     const username = document.querySelector('.username');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // Log what we found
+    console.log('Auth button found:', authButton ? 'yes' : 'no');
+    console.log('User menu found:', userMenu ? 'yes' : 'no');
+    console.log('User menu container found:', userMenuContainer ? 'yes' : 'no');
+    console.log('Logout button found:', logoutButton ? 'yes' : 'no');
 
     if (authButton) authButton.style.display = 'none';
+    if (userMenuContainer) {
+        userMenuContainer.style.display = 'flex';
+        console.log('User menu container display set to flex');
+    }
     if (userMenu) userMenu.style.display = 'flex';
     if (profileLink) profileLink.style.display = 'block';
     if (footerProfileLink) footerProfileLink.style.display = 'block';
@@ -224,21 +254,33 @@ function updateUIForUser(user) {
     }
     if (username) username.textContent = user.username;
 
-    // Remove dropdown functionality
-    const dropdown = document.querySelector('.dropdown-content');
-    if (dropdown) dropdown.style.display = 'none';
+    // Setup logout button
+    if (logoutButton) {
+        console.log('Found logout button:', logoutButton.outerHTML);
+        logoutButton.style.display = 'flex'; // Make sure it's visible
+        logoutButton.addEventListener('click', function(e) {
+            console.log('Logout button clicked');
+            handleLogout(e);
+        });
+    } else {
+        console.warn('Logout button not found in the DOM');
+    }
 }
 
 function updateUIForGuest() {
     const authButton = document.querySelector('.auth-button');
     const userMenu = document.querySelector('.user-menu');
+    const userMenuContainer = document.querySelector('.user-menu-container');
     const profileLink = document.querySelector('[data-page="profile"]');
     const footerProfileLink = document.querySelector('#footer-profile-link');
+    const logoutButton = document.getElementById('logoutButton');
 
     if (authButton) authButton.style.display = 'flex';
     if (userMenu) userMenu.style.display = 'none';
+    if (userMenuContainer) userMenuContainer.style.display = 'none';
     if (profileLink) profileLink.style.display = 'none';
     if (footerProfileLink) footerProfileLink.style.display = 'none';
+    if (logoutButton) logoutButton.style.display = 'none';
     
     // Reset any user-specific UI elements
     const username = document.querySelector('.username');
@@ -451,9 +493,11 @@ window.showToast = showToast;
 window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 window.handleError = handleError;
+window.simulateLogin = simulateLogin;
 
 // For development/demo purposes only - simulate login
 function simulateLogin() {
+    console.log('Simulating login...');
     // Clear the logged out flag
     localStorage.removeItem('logged_out');
     
@@ -471,6 +515,3 @@ function simulateLogin() {
     // Show success message
     showToast('Logged in as DemoUser', 'success');
 }
-
-// For development/demo purposes only - expose functions to window
-window.simulateLogin = simulateLogin;
