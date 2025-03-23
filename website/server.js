@@ -41,31 +41,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 })();
 
 // Middleware
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://enderfall.co.uk',
-        'https://www.enderfall.co.uk'
-    ],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-}));
-
-// Handle redirects from www to non-www
-app.use((req, res, next) => {
-    // Don't redirect auth routes - allow them to work on both www and non-www
-    if (req.path.startsWith('/auth/')) {
-        return next();
-    }
-    
-    if (req.hostname.startsWith('www.')) {
-        const newUrl = `https://enderfall.co.uk${req.originalUrl}`;
-        return res.redirect(301, newUrl);
-    }
-    next();
-});
-
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 app.use(session({
@@ -74,9 +50,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60000 * 60 * 24, // 24 hours
-        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
-        sameSite: 'lax'
+        maxAge: 60000 * 60 * 24 // 24 hours
     }
 }));
 app.use(passport.initialize());
@@ -91,19 +65,14 @@ passport.deserializeUser((user, done) => done(null, user));
 
 const scopes = ['identify', 'email', 'guilds.join'];
 
-// Get the appropriate redirect URI based on environment
-const getRedirectUri = () => {
-    return process.env.NODE_ENV === 'production' 
-        ? process.env.DISCORD_REDIRECT_URI_PROD 
-        : process.env.DISCORD_REDIRECT_URI;
-};
-
+// Dynamic callback URL configuration
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: getRedirectUri(),
-    scope: scopes
-}, async (accessToken, refreshToken, profile, done) => {
+    callbackURL: process.env.DISCORD_REDIRECT_URI,
+    scope: scopes,
+    passReqToCallback: true
+}, async (req, accessToken, refreshToken, profile, done) => {
     try {
         // Check if user exists in Supabase
         const { data: existingUser, error: fetchError } = await supabase
@@ -179,30 +148,28 @@ passport.use(new DiscordStrategy({
 
 // Auth routes
 app.get('/auth/discord', (req, res, next) => {
-    console.log('Discord auth request initiated from:', req.hostname);
-    console.log('Original URL:', req.originalUrl);
-    console.log('Headers:', req.headers);
-    passport.authenticate('discord')(req, res, next);
-});
+    // Store the origin for use in callback
+    req.session.returnTo = req.headers.referer || '/';
+    next();
+}, passport.authenticate('discord'));
 
 app.get('/auth/discord/callback',
-    (req, res, next) => {
-        console.log('Discord callback received from:', req.hostname);
-        console.log('Code present:', !!req.query.code);
-        console.log('Original URL:', req.originalUrl);
-        passport.authenticate('discord', {
-            failureRedirect: '/'
-        })(req, res, next);
-    },
+    passport.authenticate('discord', {
+        failureRedirect: '/'
+    }),
     (req, res) => {
-        console.log('Authentication successful, redirecting to profile page');
-        res.redirect('/profile.html');
+        // Redirect to the original site or default to profile
+        const returnTo = req.session.returnTo || '/profile.html';
+        delete req.session.returnTo;
+        res.redirect(returnTo);
     }
 );
 
 app.get('/auth/logout', (req, res) => {
     req.logout(() => {
-        res.redirect('/');
+        // Redirect to the referring page or home
+        const returnTo = req.headers.referer || '/';
+        res.redirect(returnTo);
     });
 });
 

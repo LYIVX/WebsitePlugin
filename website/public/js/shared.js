@@ -189,20 +189,6 @@ function updateThemeToggleTooltip(toggleButton) {
     }
 }
 
-// Get base URL based on environment
-function getBaseUrl() {
-    // Use the current protocol and hostname to preserve www or non-www
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    
-    if (hostname === 'localhost') {
-        return 'http://localhost:3000';
-    }
-    
-    // For production, use the current protocol and current hostname
-    return `${protocol}//${hostname}`;
-}
-
 // Authentication handling
 async function checkAuthState() {
     try {
@@ -216,11 +202,7 @@ async function checkAuthState() {
         }
         
         // Otherwise, check with the API
-        const baseUrl = getBaseUrl();
-        const response = await fetch(`${baseUrl}/api/user`, {
-            credentials: 'include'
-        });
-        
+        const response = await fetch('/api/user');
         if (response.ok) {
             const user = await response.json();
             updateUIForUser(user);
@@ -366,12 +348,7 @@ async function handleAuth() {
         // Clear the logged out flag when attempting to log in
         localStorage.removeItem('logged_out');
         
-        // Always redirect to non-www domain regardless of current domain
-        const protocol = window.location.protocol;
-        const authUrl = `${protocol}//enderfall.co.uk/auth/discord`;
-        
-        console.log('Auth request direct redirect to:', authUrl);
-        window.location.replace(authUrl);
+        window.location.href = '/auth/discord';
     } catch (error) {
         hideLoading();
         handleError(error, 'Failed to start authentication');
@@ -382,14 +359,12 @@ async function handleLogout(event) {
     if (event) event.preventDefault();
     showLoading();
     try {
-        const baseUrl = getBaseUrl();
+        // In a real implementation, this would call the server to invalidate the session
+        // For our demo, we'll just update the UI directly
         
         // Try to call the logout API if it exists
         try {
-            const response = await fetch(`${baseUrl}/auth/logout`, { 
-                method: 'POST',
-                credentials: 'include'
-            });
+            const response = await fetch('/auth/logout', { method: 'POST' });
             // If the API call fails, we'll still proceed with the client-side logout
         } catch (error) {
             console.warn('API logout failed, proceeding with client-side logout:', error);
@@ -410,7 +385,7 @@ async function handleLogout(event) {
         
         // Redirect to home page after a short delay
         setTimeout(() => {
-            window.location.href = baseUrl;
+            window.location.href = '/';
         }, 1000);
     } catch (error) {
         hideLoading();

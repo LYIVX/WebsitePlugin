@@ -198,18 +198,7 @@ function handleAuth() {
     if (isAuthenticated) {
         window.location.href = '/profile.html';
     } else {
-        // Use non-www domain for auth
-        const protocol = window.location.protocol;
-        const hostname = window.location.hostname === 'www.enderfall.co.uk' 
-            ? 'enderfall.co.uk' 
-            : window.location.hostname;
-        
-        // Create base URL with the correct domain
-        const baseUrl = hostname === 'localhost' 
-            ? 'http://localhost:3000' 
-            : `${protocol}//${hostname}`;
-            
-        window.location.href = `${baseUrl}/auth/discord`;
+        window.location.href = '/auth/discord';
     }
 }
 
@@ -236,19 +225,7 @@ async function handlePurchase(event) {
 
     if (!isAuthenticated) {
         showNotification('Please login with Discord first', 'error');
-        setTimeout(() => {
-            const protocol = window.location.protocol;
-            const hostname = window.location.hostname === 'www.enderfall.co.uk' 
-                ? 'enderfall.co.uk' 
-                : window.location.hostname;
-            
-            // Create base URL with the correct domain
-            const baseUrl = hostname === 'localhost' 
-                ? 'http://localhost:3000' 
-                : `${protocol}//${hostname}`;
-            
-            window.location.href = `${baseUrl}/auth/discord`;
-        }, 2000);
+        setTimeout(() => window.location.href = '/auth/discord', 2000);
         return;
     }
 

@@ -572,9 +572,7 @@ function insertMarkdownTag(tag, textarea, textareaId) {
 async function checkForumAuthState() {
     try {
         console.log('Checking auth state...');
-        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://enderfall.co.uk';
-        
-        const response = await fetch(`${baseUrl}/api/user`, {
+        const response = await fetch('/api/user', {
             credentials: 'include',
             headers: {
                 'Accept': 'application/json'
@@ -586,14 +584,15 @@ async function checkForumAuthState() {
             const userData = await response.json();
             console.log('Raw user data from API:', userData);
             
-            // Store both user IDs for comparison
+            // Store both user IDs for comparison - this is crucial
+            // The auth system uses Discord IDs, but forum posts use forum_users IDs
             currentUser = {
                 ...userData,
                 discord_id: userData.discord_id,
-                forumUserId: null
+                forumUserId: null  // This will be set when user interacts with forums
             };
             
-            // Log user ID for debugging
+            // Log user ID for debugging type issues
             console.log('Current user details for permission checks:', {
                 id: currentUser.id,
                 discord_id: currentUser.discord_id,
@@ -602,7 +601,7 @@ async function checkForumAuthState() {
             
             // Now fetch the forum_users ID for this Discord user
             try {
-                const forumUserResponse = await fetch(`${baseUrl}/api/forum-user?username=${encodeURIComponent(currentUser.username)}`, {
+                const forumUserResponse = await fetch(`/api/forum-user?username=${encodeURIComponent(currentUser.username)}`, {
                     credentials: 'include'
                 });
                 
@@ -651,8 +650,7 @@ async function loadForums(category = 'all', searchQuery = '') {
     try {
         showLoading();
         
-        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://enderfall.co.uk';
-        let url = `${baseUrl}/api/forums`;
+        let url = '/api/forums';
         const params = new URLSearchParams();
         
         if (category && category !== 'all') {
@@ -667,10 +665,7 @@ async function loadForums(category = 'all', searchQuery = '') {
             url += `?${params.toString()}`;
         }
         
-        const response = await fetch(url, {
-            credentials: 'include'
-        });
-        
+        const response = await fetch(url);
         if (!response.ok) {
             throw new Error('Failed to load forums');
         }
@@ -2557,18 +2552,3 @@ async function testSummaryField() {
 
 // Make function available globally for testing from console
 window.testSummaryField = testSummaryField;
-
-// Get default avatar path
-function getDefaultAvatarPath() {
-    return '/assets/default-avatar.png';
-}
-
-// Update avatar URL references
-function getAvatarUrl(discord_id, avatar) {
-    if (discord_id && avatar) {
-        const isAnimated = avatar.startsWith('a_');
-        const ext = isAnimated ? 'gif' : 'png';
-        return `https://cdn.discordapp.com/avatars/${discord_id}/${avatar}.${ext}?size=128`;
-    }
-    return getDefaultAvatarPath();
-}
