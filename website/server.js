@@ -112,11 +112,20 @@ passport.deserializeUser((user, done) => done(null, user));
 
 const scopes = ['identify', 'email', 'guilds.join'];
 
-// Dynamic callback URL configuration
+// Get the appropriate callback URL based on environment
+let callbackURL = process.env.DISCORD_REDIRECT_URI;
+if (process.env.NODE_ENV === 'development') {
+    callbackURL = 'http://localhost:3000/auth/discord/callback';
+    console.log('[AUTH] Using development callback URL:', callbackURL);
+} else {
+    console.log('[AUTH] Using production callback URL:', callbackURL);
+}
+
+// Discord strategy configuration
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_REDIRECT_URI,
+    callbackURL: callbackURL,
     scope: scopes,
     passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
@@ -199,6 +208,7 @@ app.get('/auth/discord', (req, res, next) => {
         // Get current domain
         const baseUrl = getBaseUrl(req);
         const currentDomain = new URL(baseUrl).hostname;
+        const dynamicCallbackUrl = `${baseUrl}/auth/discord/callback`;
         console.log('[AUTH] Current domain:', currentDomain);
         
         // Store the origin for use in callback, but ensure it's for the current domain
@@ -228,7 +238,7 @@ app.get('/auth/discord', (req, res, next) => {
         }));
         console.log('[AUTH] Environment:', process.env.NODE_ENV);
         console.log('[AUTH] Base URL detected as:', baseUrl);
-        console.log('[AUTH] Using redirect URI:', process.env.DISCORD_REDIRECT_URI);
+        console.log('[AUTH] Using callback URL:', callbackURL);
         console.log('[AUTH] returnTo set to:', req.session.returnTo);
         console.log('[AUTH] =================================');
         
@@ -1603,15 +1613,29 @@ app.get('/api/status', (req, res) => {
 // Debug route for Discord configuration
 app.get('/debug-auth', (req, res) => {
     const baseUrl = getBaseUrl(req);
+    const productionUrl = 'https://enderfall.co.uk';
+    const wwwProductionUrl = 'https://www.enderfall.co.uk';
+    const localUrl = 'http://localhost:3000';
+    
     res.json({
         discordClientId: process.env.DISCORD_CLIENT_ID,
-        discordRedirectUri: process.env.DISCORD_REDIRECT_URI,
-        calculatedRedirectUri: `${baseUrl}/auth/discord/callback`,
-        host: req.headers.host,
-        environment: process.env.NODE_ENV,
-        isAuthenticated: req.isAuthenticated(),
-        sessionExists: !!req.session,
-        cookieConfig: sessionConfig.cookie
+        configuredRedirectUri: process.env.DISCORD_REDIRECT_URI,
+        dynamicRedirectUri: `${baseUrl}/auth/discord/callback`,
+        allRequiredRedirectUris: [
+            `${localUrl}/auth/discord/callback`,
+            `${productionUrl}/auth/discord/callback`,
+            `${wwwProductionUrl}/auth/discord/callback`
+        ],
+        currentEnvironment: {
+            host: req.headers.host,
+            environment: process.env.NODE_ENV,
+            baseUrl: baseUrl
+        },
+        auth: {
+            isAuthenticated: req.isAuthenticated(),
+            sessionExists: !!req.session,
+            sessionId: req.sessionID
+        }
     });
 });
 
@@ -1620,6 +1644,13 @@ app.get('/debug-redirect', (req, res) => {
     // Get the exact callback URL that would be used for Discord
     const baseUrl = getBaseUrl(req);
     const callbackUrl = `${baseUrl}/auth/discord/callback`;
+    
+    // List all required redirect URIs
+    const requiredRedirects = [
+        'http://localhost:3000/auth/discord/callback',
+        'https://enderfall.co.uk/auth/discord/callback',
+        'https://www.enderfall.co.uk/auth/discord/callback'
+    ];
     
     // Create a test authorization URL
     const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`;
@@ -1633,6 +1664,8 @@ app.get('/debug-redirect', (req, res) => {
                 body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; }
                 pre { background: #f4f4f4; padding: 10px; overflow: auto; }
                 .url { word-break: break-all; }
+                .important { color: #d00; font-weight: bold; }
+                .code-block { background: #f8f8f8; border-left: 3px solid #2196F3; padding: 15px; margin: 15px 0; }
             </style>
         </head>
         <body>
@@ -1645,9 +1678,16 @@ app.get('/debug-redirect', (req, res) => {
                 <li><strong>NODE_ENV:</strong> ${process.env.NODE_ENV || 'not set'}</li>
             </ul>
             
-            <h2>Generated Callback URL:</h2>
+            <h2>Dynamic Callback URL:</h2>
             <pre class="url">${callbackUrl}</pre>
-            <p>This exact string must be added to your Discord Developer Portal.</p>
+            
+            <div class="code-block">
+                <h2 class="important">IMPORTANT: Add ALL these URLs to Discord Developer Portal</h2>
+                <p>You must add <strong>all three</strong> of these URLs to your Discord application:</p>
+                <ul>
+                    ${requiredRedirects.map(url => `<li><pre class="url">${url}</pre></li>`).join('')}
+                </ul>
+            </div>
             
             <h2>Full Authorization URL (encoded):</h2>
             <pre class="url">${authUrl}</pre>
@@ -1657,16 +1697,17 @@ app.get('/debug-redirect', (req, res) => {
                 <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
                 <li>Select your application (ID: ${process.env.DISCORD_CLIENT_ID})</li>
                 <li>Go to OAuth2 → Redirects</li>
-                <li>Add the <strong>exact</strong> callback URL shown above</li>
+                <li>Add <strong>ALL THREE</strong> callback URLs shown above</li>
                 <li>Save Changes</li>
             </ol>
             
             <h3>Common Issues:</h3>
             <ul>
+                <li>Missing the "Save Changes" button at the bottom of the page</li>
+                <li>Not adding all three required URLs</li>
                 <li>Extra or missing slashes</li>
                 <li>Incorrect protocol (http vs https)</li>
                 <li>Spaces or special characters</li>
-                <li>Changes not saved in Discord Developer Portal</li>
             </ul>
             
             <h2>Test Your Configuration:</h2>

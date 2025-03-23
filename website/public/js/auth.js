@@ -23,13 +23,22 @@ function handleLoginClick(e) {
     // Store current page before redirecting to login
     const returnPage = storeCurrentPage();
     
-    // Redirect to login with return URL parameter if we have one
+    // Always use the current domain's auth URL
+    console.log('[AUTH] Starting login flow with current domain');
+    
+    // Construct auth URL
+    let authUrl = '/auth/discord';
     if (returnPage) {
-        const encodedReturnUrl = encodeURIComponent(returnPage);
-        window.location.href = `/login?return_url=${encodedReturnUrl}`;
-    } else {
-        window.location.href = '/login';
+        authUrl += `?return_url=${encodeURIComponent(returnPage)}`;
     }
+    
+    // Force window location to current domain + auth URL
+    // This ensures we don't switch domains when starting auth
+    const currentDomain = window.location.origin;
+    const fullAuthUrl = `${currentDomain}${authUrl}`;
+    
+    console.log('[AUTH] Redirecting to auth URL on current domain:', fullAuthUrl);
+    window.location.href = fullAuthUrl;
 }
 
 // Check if we should redirect to previous page after login
