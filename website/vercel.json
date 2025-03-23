@@ -4,32 +4,46 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
-    { "source": "/auth/(.*)", "destination": "/server.js" },
-    { "source": "/api/(.*)", "destination": "/server.js" },
-    { "source": "/debug", "destination": "/debug-auth" },
-    { "source": "/debug-redirect", "destination": "/server.js" },
-    { "source": "/(.*)", "destination": "/server.js" }
-  ],
-  "redirects": [
-    { "source": "/discord", "destination": "/auth/discord", "permanent": false },
-    { "source": "/discord-debug", "destination": "/debug-redirect", "permanent": false }
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/debug-(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Credentials", "value": "true" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 } 
