@@ -2,7 +2,7 @@
 .feature-card {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: auto;
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -19,6 +19,7 @@
     background-color: rgba(255, 255, 255, 0.1);
     border: none;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 0;
 }
 
 .feature-card.payment-goal-card .tab-bar-nav {
@@ -44,7 +45,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem;
-    height: 100%;
+    height: auto;
 }
 
 .feature-icon {

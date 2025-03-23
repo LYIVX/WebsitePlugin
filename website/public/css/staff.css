@@ -1,0 +1,44 @@
+#staff .payment-goal-card {
+    margin-bottom: 0rem;
+}
+
+/* Minecraft character styling */
+#staff .feature-icon img:first-of-type {
+    height: 120px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--theme-border);
+    padding: 0.5rem;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    display: block;
+    margin: 0 auto;
+    margin-bottom: 0.75rem;
+}
+
+/* Role icon styling */
+#staff .feature-icon img:nth-of-type(2) {
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--theme-border);
+    padding: 0.1rem;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+#staff .feature-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#staff .feature-icon img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.7);
+}
+
+
+
