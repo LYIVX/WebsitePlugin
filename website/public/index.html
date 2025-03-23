@@ -18,6 +18,13 @@
     
     <!-- Load configuration early -->
     <script src="/js/site-config.js"></script>
+
+    <!-- Auth redirect script - must be at the top -->
+    <script>
+    if (window.location.hostname === 'www.enderfall.co.uk' && window.location.pathname.startsWith('/auth/')) {
+        window.location.replace(window.location.href.replace('www.enderfall.co.uk', 'enderfall.co.uk'));
+    }
+    </script>
 </head>
 <body>
     <!-- Navigation will be loaded by shared.js -->

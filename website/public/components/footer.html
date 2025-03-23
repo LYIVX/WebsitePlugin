@@ -21,4 +21,23 @@
     <div class="footer-bottom">
         <p>&copy; 2025 Enderfall. All rights reserved.</p>
     </div>
-</footer> 
+</footer>
+
+<!-- Auth redirect script -->
+<script>
+// Immediately redirect any www auth requests to non-www domain
+if (window.location.hostname === 'www.enderfall.co.uk' && window.location.pathname.startsWith('/auth/')) {
+    window.location.replace(window.location.href.replace('www.enderfall.co.uk', 'enderfall.co.uk'));
+}
+
+// Fix login buttons to always use non-www for auth routes
+document.addEventListener('click', function(e) {
+    const target = e.target.closest('a[href^="/auth/"]') || e.target.closest('button[onclick*="/auth/discord"]');
+    if (target) {
+        e.preventDefault();
+        const protocol = window.location.protocol;
+        window.location.href = `${protocol}//enderfall.co.uk${target.getAttribute('href') || '/auth/discord'}`;
+        return false;
+    }
+});
+</script> 
