@@ -10,19 +10,14 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
-    {
-      "src": "/auth/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
-    }
+  "rewrites": [
+    { "source": "/auth/(.*)", "destination": "/server.js" },
+    { "source": "/api/(.*)", "destination": "/server.js" },
+    { "source": "/debug", "destination": "/debug-auth" },
+    { "source": "/(.*)", "destination": "/server.js" }
+  ],
+  "redirects": [
+    { "source": "/discord", "destination": "/auth/discord", "permanent": false }
   ],
   "headers": [
     {
@@ -34,11 +29,5 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
       ]
     }
-  ],
-  "rewrites": [
-    { "source": "/debug", "destination": "/debug-auth" }
-  ],
-  "redirects": [
-    { "source": "/discord", "destination": "/auth/discord", "permanent": false }
   ]
 } 
