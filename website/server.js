@@ -27,31 +27,34 @@ const isProduction = process.env.NODE_ENV === 'production';
 const cookieSecure = isProduction;
 
 // Helper function to determine environment
-function getBaseUrl(req) {
-    // Production environment detection
+const getBaseUrl = (req) => {
+    // Check if we're in production and have a custom host header
+    const host = req.headers.host;
+    console.log(`Host header: ${host}`);
+
     if (process.env.NODE_ENV === 'production') {
-        // Check if we have a custom host header
-        if (req && req.headers && req.headers.host) {
-            // Always use the non-www version for consistency
-            if (req.headers.host.includes('enderfall.co.uk')) {
-                // Ensure we always use the non-www version
-                return 'https://enderfall.co.uk';
-            }
+        // In production, always use the non-www version for consistency
+        if (host && host.includes('enderfall.co.uk')) {
+            return 'https://enderfall.co.uk';
         }
         
-        // Default to non-www in production if we couldn't determine from headers
-        console.log('[URL] No matching host header found, defaulting to enderfall.co.uk');
-        return 'https://enderfall.co.uk';
+        // For local development
+        if (host && host.includes('localhost')) {
+            return `http://${host}`;
+        }
+    } else {
+        // Development environment
+        if (host) {
+            return `http://${host}`;
+        }
     }
     
-    // Check if running on Vercel preview deployment
-    if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL}`;
-    }
-    
-    // In development, use localhost
-    return 'http://localhost:3000';
-}
+    // Default fallback if no host found
+    console.log('No matching host header found, defaulting to non-www URL');
+    return process.env.NODE_ENV === 'production' 
+        ? 'https://enderfall.co.uk' 
+        : 'http://localhost:3000';
+};
 
 const PORT = process.env.PORT || 3000;
 
