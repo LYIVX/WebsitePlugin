@@ -189,6 +189,15 @@ function updateThemeToggleTooltip(toggleButton) {
     }
 }
 
+// Get base URL based on environment
+function getBaseUrl() {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost') {
+        return 'http://localhost:3000';
+    }
+    return 'https://enderfall.co.uk';
+}
+
 // Authentication handling
 async function checkAuthState() {
     try {
@@ -202,7 +211,11 @@ async function checkAuthState() {
         }
         
         // Otherwise, check with the API
-        const response = await fetch('/api/user');
+        const baseUrl = getBaseUrl();
+        const response = await fetch(`${baseUrl}/api/user`, {
+            credentials: 'include'
+        });
+        
         if (response.ok) {
             const user = await response.json();
             updateUIForUser(user);
@@ -348,7 +361,8 @@ async function handleAuth() {
         // Clear the logged out flag when attempting to log in
         localStorage.removeItem('logged_out');
         
-        window.location.href = '/auth/discord';
+        const baseUrl = getBaseUrl();
+        window.location.href = `${baseUrl}/auth/discord`;
     } catch (error) {
         hideLoading();
         handleError(error, 'Failed to start authentication');
@@ -359,12 +373,14 @@ async function handleLogout(event) {
     if (event) event.preventDefault();
     showLoading();
     try {
-        // In a real implementation, this would call the server to invalidate the session
-        // For our demo, we'll just update the UI directly
+        const baseUrl = getBaseUrl();
         
         // Try to call the logout API if it exists
         try {
-            const response = await fetch('/auth/logout', { method: 'POST' });
+            const response = await fetch(`${baseUrl}/auth/logout`, { 
+                method: 'POST',
+                credentials: 'include'
+            });
             // If the API call fails, we'll still proceed with the client-side logout
         } catch (error) {
             console.warn('API logout failed, proceeding with client-side logout:', error);
@@ -385,7 +401,7 @@ async function handleLogout(event) {
         
         // Redirect to home page after a short delay
         setTimeout(() => {
-            window.location.href = '/';
+            window.location.href = baseUrl;
         }, 1000);
     } catch (error) {
         hideLoading();

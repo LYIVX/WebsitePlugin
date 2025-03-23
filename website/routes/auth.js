@@ -1,5 +1,34 @@
+const express = require('express');
+const router = express.Router();
+const passport = require('passport');
+const DiscordStrategy = require('passport-discord').Strategy;
+const { createClient } = require('@supabase/supabase-js');
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
+
+// Get the appropriate redirect URI based on environment
+const getRedirectUri = () => {
+    return process.env.NODE_ENV === 'production' 
+        ? process.env.DISCORD_REDIRECT_URI_PROD 
+        : process.env.DISCORD_REDIRECT_URI;
+};
+
+// Configure Discord strategy
+passport.use(new DiscordStrategy({
+    clientID: process.env.DISCORD_CLIENT_ID,
+    clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    callbackURL: getRedirectUri(),
+    scope: ['identify', 'email']
+}, async (accessToken, refreshToken, profile, done) => {
+    // ... existing strategy code ...
+}));
+
 // Discord OAuth callback endpoint
-router.get('/discord/callback', async (req, res) => {
+router.get('/discord', passport.authenticate('discord'));
+
+router.get('/discord/callback', passport.authenticate('discord', {
+    failureRedirect: '/login?error=Authentication%20failed'
+}), async (req, res) => {
   try {
     const { code } = req.query;
     if (!code) {

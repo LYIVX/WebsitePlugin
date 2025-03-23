@@ -41,7 +41,10 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 })();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://enderfall.co.uk'],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.static('public'));
 app.use(session({
@@ -50,7 +53,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60000 * 60 * 24 // 24 hours
+        maxAge: 60000 * 60 * 24, // 24 hours
+        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
+        sameSite: 'lax'
     }
 }));
 app.use(passport.initialize());

@@ -572,7 +572,9 @@ function insertMarkdownTag(tag, textarea, textareaId) {
 async function checkForumAuthState() {
     try {
         console.log('Checking auth state...');
-        const response = await fetch('/api/user', {
+        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://enderfall.co.uk';
+        
+        const response = await fetch(`${baseUrl}/api/user`, {
             credentials: 'include',
             headers: {
                 'Accept': 'application/json'
@@ -584,15 +586,14 @@ async function checkForumAuthState() {
             const userData = await response.json();
             console.log('Raw user data from API:', userData);
             
-            // Store both user IDs for comparison - this is crucial
-            // The auth system uses Discord IDs, but forum posts use forum_users IDs
+            // Store both user IDs for comparison
             currentUser = {
                 ...userData,
                 discord_id: userData.discord_id,
-                forumUserId: null  // This will be set when user interacts with forums
+                forumUserId: null
             };
             
-            // Log user ID for debugging type issues
+            // Log user ID for debugging
             console.log('Current user details for permission checks:', {
                 id: currentUser.id,
                 discord_id: currentUser.discord_id,
@@ -601,7 +602,7 @@ async function checkForumAuthState() {
             
             // Now fetch the forum_users ID for this Discord user
             try {
-                const forumUserResponse = await fetch(`/api/forum-user?username=${encodeURIComponent(currentUser.username)}`, {
+                const forumUserResponse = await fetch(`${baseUrl}/api/forum-user?username=${encodeURIComponent(currentUser.username)}`, {
                     credentials: 'include'
                 });
                 
@@ -650,7 +651,8 @@ async function loadForums(category = 'all', searchQuery = '') {
     try {
         showLoading();
         
-        let url = '/api/forums';
+        const baseUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://enderfall.co.uk';
+        let url = `${baseUrl}/api/forums`;
         const params = new URLSearchParams();
         
         if (category && category !== 'all') {
@@ -665,7 +667,10 @@ async function loadForums(category = 'all', searchQuery = '') {
             url += `?${params.toString()}`;
         }
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            credentials: 'include'
+        });
+        
         if (!response.ok) {
             throw new Error('Failed to load forums');
         }
