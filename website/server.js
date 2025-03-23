@@ -6,6 +6,8 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const { createClient } = require('@supabase/supabase-js');
+const cors = require('cors');
 require('dotenv').config();
 
 // Routers
@@ -16,31 +18,6 @@ const commentsRouter = require('./routes/comments');
 const fs = require('fs');
 
 const app = express();
-
-// Safer www to non-www redirect with error handling
-app.use((req, res, next) => {
-  try {
-    // Use x-forwarded-host which is more reliable in serverless environments
-    const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-    
-    // Debug logging
-    console.log('Redirect middleware - host:', host);
-    
-    if (host.startsWith('www.')) {
-      const newHost = host.slice(4); // remove 'www.'
-      // Use x-forwarded-proto which is set by Vercel
-      const protocol = req.headers['x-forwarded-proto'] || 'https';
-      const redirectUrl = `${protocol}://${newHost}${req.originalUrl}`;
-      
-      console.log('Redirecting to:', redirectUrl);
-      return res.redirect(301, redirectUrl);
-    }
-  } catch (error) {
-    console.error('Error in redirect middleware:', error);
-    // Don't fail the request if there's an error in the redirect
-  }
-  next();
-});
 
 // Console log the environment for debugging
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
