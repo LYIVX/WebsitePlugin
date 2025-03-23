@@ -34,6 +34,7 @@ function getBaseUrl(req) {
         if (req && req.headers && req.headers.host) {
             // Always use the non-www version for consistency
             if (req.headers.host.includes('enderfall.co.uk')) {
+                // Ensure we always use the non-www version
                 return 'https://enderfall.co.uk';
             }
         }

@@ -6,6 +6,19 @@
       "use": "@vercel/node"
     }
   ],
+  "redirects": [
+    { 
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.enderfall.co.uk"
+        }
+      ],
+      "destination": "https://enderfall.co.uk/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server.js" },
     { "source": "/auth/(.*)", "destination": "/server.js" },
