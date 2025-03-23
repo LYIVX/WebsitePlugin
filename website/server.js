@@ -1,61 +1,45 @@
-// server.js for Enderfall website
+require('dotenv').config();
 const express = require('express');
-const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
-require('dotenv').config();
-
-// Import routes
-const userRouter = require('./routes/user');
-const forumRouter = require('./routes/forums');
-const migrationRouter = require('./routes/migrations');
+const path = require('path');
 const commentsRouter = require('./routes/comments');
 const fs = require('fs');
 
-const app = express();
-
-// Console log the environment for debugging
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
-
-// Set cookie secure flag based on environment
-const isProduction = process.env.NODE_ENV === 'production';
-const cookieSecure = isProduction;
-
 // Helper function to determine environment
-const getBaseUrl = (req) => {
-    // Check if we're in production and have a custom host header
-    const host = req.headers.host;
-    console.log(`Host header: ${host}`);
-
+function getBaseUrl(req) {
+    // Production environment detection
     if (process.env.NODE_ENV === 'production') {
-        // In production, always use the non-www version for consistency
-        if (host && host.includes('enderfall.co.uk')) {
-            return 'https://enderfall.co.uk';
+        // Check if we have a custom host header
+        if (req && req.headers && req.headers.host) {
+            // Handle both www and non-www versions of the domain
+            if (req.headers.host.includes('enderfall.co.uk')) {
+                if (req.headers.host.startsWith('www.')) {
+                    return 'https://www.enderfall.co.uk';
+                } else {
+                    return 'https://enderfall.co.uk';
+                }
+            }
         }
         
-        // For local development
-        if (host && host.includes('localhost')) {
-            return `http://${host}`;
-        }
-    } else {
-        // Development environment
-        if (host) {
-            return `http://${host}`;
-        }
+        // Default to non-www in production if we couldn't determine from headers
+        console.log('[URL] No matching host header found, defaulting to enderfall.co.uk');
+        return 'https://enderfall.co.uk';
     }
     
-    // Default fallback if no host found
-    console.log('No matching host header found, defaulting to non-www URL');
-    return process.env.NODE_ENV === 'production' 
-        ? 'https://enderfall.co.uk' 
-        : 'http://localhost:3000';
-};
+    // Check if running on Vercel preview deployment
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    
+    // In development, use localhost
+    return 'http://localhost:3000';
+}
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize Supabase client
@@ -110,8 +94,8 @@ const sessionConfig = {
 
 // In production, set the domain to work with both www and non-www
 if (process.env.NODE_ENV === 'production') {
-    // Use a dot prefix to make the cookie work for all subdomains
-    sessionConfig.cookie.domain = '.enderfall.co.uk';
+    // Use a domain that works for both www and non-www
+    sessionConfig.cookie.domain = 'enderfall.co.uk';
     console.log('[SESSION] Using production cookie domain:', sessionConfig.cookie.domain);
 }
 
@@ -119,11 +103,8 @@ app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Apply routes
-app.use('/api/user', userRouter);
-app.use('/api/forums', forumRouter);
-app.use('/api/migrations', migrationRouter);
-app.use('/api/comments', commentsRouter);
+// Mount routers
+app.use('/api/comments', commentsRouter(supabase));
 
 // Passport configuration
 passport.serializeUser((user, done) => done(null, user));
@@ -310,17 +291,6 @@ app.get('/auth/discord/callback', (req, res, next) => {
                 return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
             
-            // Log session info for debugging
-            console.log('[AUTH] Session after login:', {
-                sessionID: req.sessionID,
-                cookieConfig: JSON.stringify(sessionConfig.cookie),
-                authenticated: req.isAuthenticated(),
-                env: process.env.NODE_ENV,
-                hostname: req.hostname,
-                protocol: req.protocol,
-                hasUser: !!req.user
-            });
-            
             // Redirect to the original site or default to profile
             let returnTo = req.session.returnTo || '/profile.html';
             delete req.session.returnTo;
@@ -362,7 +332,7 @@ app.get('/auth/logout', (req, res) => {
             // Clear auth cookie explicitly
             res.clearCookie('connect.sid', {
                 path: '/',
-                domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
+                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined
             });
             
             // Redirect to the referring page or home
@@ -1167,146 +1137,631 @@ app.post('/api/user/minecraft', isAuthenticated, async (req, res) => {
         
         res.json(userData);
     } catch (error) {
-        console.error('Error updating Minecraft username:', error);
-        res.status(500).json({ error: 'Failed to update Minecraft username' });
+        console.error('Error linking Minecraft account:', error);
+        res.status(500).json({ error: 'Failed to link Minecraft account' });
     }
 });
 
-// Auth status debug page
-app.get('/debug-auth-status', (req, res) => {
-    // Get the cookie settings
-    const cookieSettings = {
-        ...sessionConfig.cookie,
-        inProduction: process.env.NODE_ENV === 'production',
-        domainWithDot: '.enderfall.co.uk',
-        domainWithoutDot: 'enderfall.co.uk'
+app.delete('/api/user/minecraft', isAuthenticated, async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .update({ minecraft_username: null })
+            .eq('id', req.user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json(data);
+    } catch (error) {
+        console.error('Error unlinking Minecraft account:', error);
+        res.status(500).json({ error: 'Failed to unlink Minecraft account' });
+    }
+});
+
+app.patch('/api/user/preferences', isAuthenticated, async (req, res) => {
+    try {
+        const { email_notifications, discord_notifications } = req.body;
+        
+        // First verify the user exists
+        const { data: existingUser, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('discord_id', req.user.discord_id)
+            .single();
+
+        if (userError) {
+            console.error('Error finding user:', userError);
+            return res.status(500).json({ error: 'Failed to verify user' });
+        }
+
+        // Prepare updates
+        const updates = {
+            updated_at: new Date()
+        };
+        
+        if (typeof email_notifications === 'boolean') {
+            updates.email_notifications = email_notifications;
+        }
+        if (typeof discord_notifications === 'boolean') {
+            updates.discord_notifications = discord_notifications;
+        }
+
+        // Update the user's preferences
+        const { data, error } = await supabase
+            .from('users')
+            .update(updates)
+            .eq('discord_id', req.user.discord_id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating preferences:', error);
+            throw error;
+        }
+
+        // Add additional user data
+        const userData = {
+            ...data,
+            discriminator: req.user.discriminator,
+            avatar_url: req.user.avatar 
+                ? `https://cdn.discordapp.com/avatars/${req.user.discord_id}/${req.user.avatar}.png`
+                : null
+        };
+        
+        res.json(userData);
+    } catch (error) {
+        console.error('Error updating preferences:', error);
+        res.status(500).json({ error: 'Failed to update preferences' });
+    }
+});
+
+app.post('/api/purchase', isAuthenticated, async (req, res) => {
+    const { rankName, price } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // Create purchase record in Supabase
+        const { data, error } = await supabase
+            .from('purchases')
+            .insert([{
+                user_id: userId,
+                rank_name: rankName,
+                price: price,
+                status: 'pending'
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        // Here you would typically:
+        // 1. Process payment
+        // 2. Update Discord roles
+        // 3. Update Minecraft permissions
+
+        res.json(data);
+    } catch (error) {
+        console.error('Purchase error:', error);
+        res.status(500).json({ error: 'Failed to process purchase' });
+    }
+});
+
+// Purchase routes
+app.post('/api/purchase/rank', isAuthenticated, async (req, res) => {
+    try {
+        const { rankId, price } = req.body;
+
+        // Validate rank exists
+        const rankConfig = getRankConfig(rankId);
+        if (!rankConfig) {
+            return res.status(400).json({ error: 'Invalid rank selection' });
+        }
+
+        // Validate price matches
+        if (rankConfig.price !== price) {
+            return res.status(400).json({ error: 'Invalid price' });
+        }
+
+        // Create purchase record
+        const { data: purchase, error: purchaseError } = await supabase
+            .from('purchases')
+            .insert({
+                user_id: req.user.id,
+                rank_name: rankConfig.name,
+                price: price,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (purchaseError) throw purchaseError;
+
+        // In a real implementation, we would:
+        // 1. Create a payment session with Stripe/PayPal
+        // 2. Return the session URL for client-side redirect
+        // 3. Handle webhook for payment confirmation
+        // 4. Update purchase status and apply rank
+
+        // For now, simulate successful purchase
+        const { error: rankError } = await supabase
+            .from('user_ranks')
+            .insert({
+                user_id: req.user.id,
+                name: rankConfig.name,
+                description: rankConfig.description,
+                features: rankConfig.features,
+                expires_at: null
+            });
+
+        if (rankError) throw rankError;
+
+        const { error: updateError } = await supabase
+            .from('purchases')
+            .update({ status: 'completed' })
+            .eq('id', purchase.id);
+
+        if (updateError) throw updateError;
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error processing purchase:', error);
+        res.status(500).json({ error: 'Failed to process purchase' });
+    }
+});
+
+app.post('/api/purchase/upgrade', isAuthenticated, async (req, res) => {
+    try {
+        const { upgradeId, price } = req.body;
+
+        // Validate upgrade exists and user has required rank
+        const upgradeConfig = getUpgradeConfig(upgradeId);
+        if (!upgradeConfig) {
+            return res.status(400).json({ error: 'Invalid upgrade selection' });
+        }
+
+        // Check if user has the required rank
+        const { data: currentRank, error: rankError } = await supabase
+            .from('user_ranks')
+            .select('name')
+            .eq('user_id', req.user.id)
+            .eq('name', upgradeConfig.from)
+            .single();
+
+        if (rankError || !currentRank) {
+            return res.status(400).json({ error: 'You do not have the required rank for this upgrade' });
+        }
+
+        // Validate price matches
+        if (upgradeConfig.price !== price) {
+            return res.status(400).json({ error: 'Invalid price' });
+        }
+
+        // Create purchase record
+        const { data: purchase, error: purchaseError } = await supabase
+            .from('purchases')
+            .insert({
+                user_id: req.user.id,
+                rank_name: upgradeConfig.to,
+                price: price,
+                status: 'pending'
+            })
+            .select()
+            .single();
+
+        if (purchaseError) throw purchaseError;
+
+        // For now, simulate successful purchase
+        const { error: deleteError } = await supabase
+            .from('user_ranks')
+            .delete()
+            .eq('user_id', req.user.id)
+            .eq('name', upgradeConfig.from);
+
+        if (deleteError) throw deleteError;
+
+        const { error: rankError2 } = await supabase
+            .from('user_ranks')
+            .insert({
+                user_id: req.user.id,
+                name: upgradeConfig.to,
+                description: upgradeConfig.description,
+                features: upgradeConfig.features,
+                expires_at: null
+            });
+
+        if (rankError2) throw rankError2;
+
+        const { error: updateError } = await supabase
+            .from('purchases')
+            .update({ status: 'completed' })
+            .eq('id', purchase.id);
+
+        if (updateError) throw updateError;
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error processing upgrade:', error);
+        res.status(500).json({ error: 'Failed to process upgrade' });
+    }
+});
+
+// Rank configuration helpers
+function getRankConfig(rankId) {
+    const ranks = {
+        // Serverwide Ranks
+        'shadow-enchanter': {
+            name: 'Shadow Enchanter',
+            price: 9.99,
+            description: 'A mystical rank with basic flying abilities',
+            features: ['/fly', '3 /sethome', 'colored chat', 'special prefix']
+        },
+        'void-walker': {
+            name: 'Void Walker',
+            price: 19.99,
+            description: 'Master of the void with enhanced storage',
+            features: ['/enderchest', '5 /sethome', 'custom join messages']
+        },
+        'ethereal-warden': {
+            name: 'Ethereal Warden',
+            price: 29.99,
+            description: 'Guardian of the realm with healing powers',
+            features: ['/heal', '/feed', '7 /sethome', 'particle effects']
+        },
+        'astral-guardian': {
+            name: 'Astral Guardian',
+            price: 39.99,
+            description: 'Supreme cosmic being with ultimate abilities',
+            features: ['/nick', '10 /sethome', 'custom particle trails']
+        },
+        // Towny Ranks
+        'citizen': {
+            name: 'Citizen',
+            price: 4.99,
+            description: 'Basic towny privileges',
+            features: ['Create town', '5 plots', '1 spawn']
+        },
+        'merchant': {
+            name: 'Merchant',
+            price: 9.99,
+            description: 'Enhanced trading capabilities',
+            features: ['2 shops', '10 plots']
+        },
+        'councilor': {
+            name: 'Councilor',
+            price: 14.99,
+            description: 'Town management abilities',
+            features: ['5 shops', 'town chat colors']
+        },
+        'mayor': {
+            name: 'Mayor',
+            price: 19.99,
+            description: 'Full town control',
+            features: ['multiple spawns', 'welcome message']
+        },
+        'governor': {
+            name: 'Governor',
+            price: 24.99,
+            description: 'Nation creation privileges',
+            features: ['create nation', 'nation chat prefix']
+        },
+        'noble': {
+            name: 'Noble',
+            price: 29.99,
+            description: 'Advanced nation features',
+            features: ['nation particles', 'custom spawn']
+        },
+        'duke': {
+            name: 'Duke',
+            price: 34.99,
+            description: 'Nation-wide abilities',
+            features: ['nation-wide effects', 'custom banner']
+        },
+        'king': {
+            name: 'King',
+            price: 39.99,
+            description: 'Supreme nation control',
+            features: ['nation commands', 'custom laws']
+        },
+        'divine-ruler': {
+            name: 'Divine Ruler',
+            price: 44.99,
+            description: 'Ultimate towny authority',
+            features: ['divine powers', 'custom events']
+        }
     };
 
-    // Return a nicely formatted HTML page with auth status
+    return ranks[rankId];
+}
+
+function getUpgradeConfig(upgradeId) {
+    const upgrades = {
+        // Serverwide Upgrades
+        'shadow-to-void': {
+            from: 'Shadow Enchanter',
+            to: 'Void Walker',
+            price: 4.99,
+            description: 'Upgrade to Void Walker rank',
+            features: ['/enderchest', '5 /sethome', 'custom join messages']
+        },
+        'void-to-ethereal': {
+            from: 'Void Walker',
+            to: 'Ethereal Warden',
+            price: 4.99,
+            description: 'Upgrade to Ethereal Warden rank',
+            features: ['/heal', '/feed', '7 /sethome', 'particle effects']
+        },
+        'ethereal-to-astral': {
+            from: 'Ethereal Warden',
+            to: 'Astral Guardian',
+            price: 4.99,
+            description: 'Upgrade to Astral Guardian rank',
+            features: ['/nick', '10 /sethome', 'custom particle trails']
+        },
+        // Towny Upgrades
+        'citizen-to-merchant': {
+            from: 'Citizen',
+            to: 'Merchant',
+            price: 4.99,
+            description: 'Upgrade to Merchant rank',
+            features: ['2 shops', '10 plots']
+        },
+        'merchant-to-councilor': {
+            from: 'Merchant',
+            to: 'Councilor',
+            price: 4.99,
+            description: 'Upgrade to Councilor rank',
+            features: ['5 shops', 'town chat colors']
+        },
+        'councilor-to-mayor': {
+            from: 'Councilor',
+            to: 'Mayor',
+            price: 4.99,
+            description: 'Upgrade to Mayor rank',
+            features: ['multiple spawns', 'welcome message']
+        },
+        'mayor-to-governor': {
+            from: 'Mayor',
+            to: 'Governor',
+            price: 4.99,
+            description: 'Upgrade to Governor rank',
+            features: ['create nation', 'nation chat prefix']
+        },
+        'governor-to-noble': {
+            from: 'Governor',
+            to: 'Noble',
+            price: 4.99,
+            description: 'Upgrade to Noble rank',
+            features: ['nation particles', 'custom spawn']
+        },
+        'noble-to-duke': {
+            from: 'Noble',
+            to: 'Duke',
+            price: 4.99,
+            description: 'Upgrade to Duke rank',
+            features: ['nation-wide effects', 'custom banner']
+        },
+        'duke-to-king': {
+            from: 'Duke',
+            to: 'King',
+            price: 4.99,
+            description: 'Upgrade to King rank',
+            features: ['nation commands', 'custom laws']
+        },
+        'king-to-divine': {
+            from: 'King',
+            to: 'Divine Ruler',
+            price: 4.99,
+            description: 'Upgrade to Divine Ruler rank',
+            features: ['divine powers', 'custom events']
+        }
+    };
+
+    return upgrades[upgradeId];
+}
+
+// Get forum user by username
+app.get('/api/forum-user', async (req, res) => {
+    try {
+        const { username } = req.query;
+        
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+        
+        console.log('Looking up forum user ID for username:', username);
+        
+        // Get forum user ID
+        const { data, error } = await supabase
+            .from('forum_users')
+            .select('id')
+            .eq('username', username)
+            .single();
+        
+        if (error) {
+            console.error('Error fetching forum user:', error);
+            return res.status(404).json({ error: 'Forum user not found' });
+        }
+        
+        console.log('Found forum user ID:', data.id);
+        res.json({ id: String(data.id) });
+    } catch (error) {
+        console.error('Error processing forum user request:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Status/health check endpoint
+app.get('/api/status', (req, res) => {
+    const baseUrl = getBaseUrl(req);
+    res.json({
+        status: 'online',
+        environment: process.env.NODE_ENV,
+        baseUrl: baseUrl,
+        callbackUrl: `${baseUrl}/auth/discord/callback`,
+        host: req.headers.host,
+        vercelUrl: process.env.VERCEL_URL || 'not set',
+        request: {
+            protocol: req.protocol,
+            originalUrl: req.originalUrl,
+            hostname: req.hostname,
+            path: req.path,
+            referer: req.headers.referer || 'none'
+        }
+    });
+});
+
+// Debug route for Discord configuration
+app.get('/debug-auth', (req, res) => {
+    const baseUrl = getBaseUrl(req);
+    const productionUrl = 'https://enderfall.co.uk';
+    const wwwProductionUrl = 'https://www.enderfall.co.uk';
+    const localUrl = 'http://localhost:3000';
+    
+    res.json({
+        discordClientId: process.env.DISCORD_CLIENT_ID,
+        configuredRedirectUri: process.env.DISCORD_REDIRECT_URI,
+        dynamicRedirectUri: `${baseUrl}/auth/discord/callback`,
+        allRequiredRedirectUris: [
+            `${localUrl}/auth/discord/callback`,
+            `${productionUrl}/auth/discord/callback`,
+            `${wwwProductionUrl}/auth/discord/callback`
+        ],
+        currentEnvironment: {
+            host: req.headers.host,
+            environment: process.env.NODE_ENV,
+            baseUrl: baseUrl
+        },
+        auth: {
+            isAuthenticated: req.isAuthenticated(),
+            sessionExists: !!req.session,
+            sessionId: req.sessionID
+        }
+    });
+});
+
+// Add this endpoint after your existing debug endpoint
+app.get('/debug-redirect', (req, res) => {
+    // Get the exact callback URL that would be used for Discord
+    const baseUrl = getBaseUrl(req);
+    const callbackUrl = `${baseUrl}/auth/discord/callback`;
+    
+    // List all required redirect URIs
+    const requiredRedirects = [
+        'http://localhost:3000/auth/discord/callback',
+        'https://enderfall.co.uk/auth/discord/callback',
+        'https://www.enderfall.co.uk/auth/discord/callback'
+    ];
+    
+    // Create a test authorization URL
+    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackUrl)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`;
+    
+    // Return detailed information
     res.send(`
     <html>
         <head>
-            <title>Authentication Status</title>
+            <title>OAuth Debug</title>
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; }
                 pre { background: #f4f4f4; padding: 10px; overflow: auto; }
-                .status { font-size: 24px; margin: 20px 0; }
-                .authenticated { color: green; }
-                .not-authenticated { color: red; }
-                .data-section { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin: 15px 0; }
-                .data-section h2 { margin-top: 0; }
-                table { width: 100%; border-collapse: collapse; }
-                table td, table th { border: 1px solid #ddd; padding: 8px; }
-                table tr:nth-child(even) { background-color: #f2f2f2; }
+                .url { word-break: break-all; }
+                .important { color: #d00; font-weight: bold; }
+                .code-block { background: #f8f8f8; border-left: 3px solid #2196F3; padding: 15px; margin: 15px 0; }
             </style>
         </head>
         <body>
-            <h1>Authentication Status Debug</h1>
+            <h1>OAuth Redirect Debug</h1>
+            <h2>Your Environment:</h2>
+            <ul>
+                <li><strong>Host:</strong> ${req.headers.host}</li>
+                <li><strong>Protocol:</strong> ${req.protocol}</li>
+                <li><strong>Base URL:</strong> ${baseUrl}</li>
+                <li><strong>NODE_ENV:</strong> ${process.env.NODE_ENV || 'not set'}</li>
+            </ul>
             
-            <div class="status ${req.isAuthenticated() ? 'authenticated' : 'not-authenticated'}">
-                Status: ${req.isAuthenticated() ? 'AUTHENTICATED ✓' : 'NOT AUTHENTICATED ✗'}
+            <h2>Dynamic Callback URL:</h2>
+            <pre class="url">${callbackUrl}</pre>
+            
+            <div class="code-block">
+                <h2 class="important">IMPORTANT: Add ALL these URLs to Discord Developer Portal</h2>
+                <p>You must add <strong>all three</strong> of these URLs to your Discord application:</p>
+                <ul>
+                    ${requiredRedirects.map(url => `<li><pre class="url">${url}</pre></li>`).join('')}
+                </ul>
             </div>
             
-            <div class="data-section">
-                <h2>Session Information</h2>
-                <table>
-                    <tr>
-                        <td>Session Exists</td>
-                        <td>${!!req.session}</td>
-                    </tr>
-                    <tr>
-                        <td>Session ID</td>
-                        <td>${req.sessionID || 'None'}</td>
-                    </tr>
-                    <tr>
-                        <td>Has User Object</td>
-                        <td>${!!req.user}</td>
-                    </tr>
-                    <tr>
-                        <td>User ID</td>
-                        <td>${req.user ? req.user.id : 'None'}</td>
-                    </tr>
-                    <tr>
-                        <td>Username</td>
-                        <td>${req.user ? req.user.username : 'None'}</td>
-                    </tr>
-                </table>
-            </div>
+            <h2>Full Authorization URL (encoded):</h2>
+            <pre class="url">${authUrl}</pre>
             
-            <div class="data-section">
-                <h2>Cookie Configuration</h2>
-                <table>
-                    <tr>
-                        <td>Domain</td>
-                        <td>${cookieSettings.domain || '(not set - browser default)'}</td>
-                    </tr>
-                    <tr>
-                        <td>Environment</td>
-                        <td>${process.env.NODE_ENV || 'development'}</td>
-                    </tr>
-                    <tr>
-                        <td>Secure</td>
-                        <td>${cookieSettings.secure}</td>
-                    </tr>
-                    <tr>
-                        <td>HttpOnly</td>
-                        <td>${cookieSettings.httpOnly}</td>
-                    </tr>
-                    <tr>
-                        <td>SameSite</td>
-                        <td>${cookieSettings.sameSite}</td>
-                    </tr>
-                    <tr>
-                        <td>Max Age</td>
-                        <td>${cookieSettings.maxAge / (1000 * 60 * 60 * 24)} days</td>
-                    </tr>
-                </table>
-            </div>
+            <h2>What to check:</h2>
+            <ol>
+                <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+                <li>Select your application (ID: ${process.env.DISCORD_CLIENT_ID})</li>
+                <li>Go to OAuth2 → Redirects</li>
+                <li>Add <strong>ALL THREE</strong> callback URLs shown above</li>
+                <li>Save Changes</li>
+            </ol>
             
-            <div class="data-section">
-                <h2>Environment Information</h2>
-                <table>
-                    <tr>
-                        <td>Host</td>
-                        <td>${req.headers.host}</td>
-                    </tr>
-                    <tr>
-                        <td>Protocol</td>
-                        <td>${req.protocol}</td>
-                    </tr>
-                    <tr>
-                        <td>Original URL</td>
-                        <td>${req.originalUrl}</td>
-                    </tr>
-                    <tr>
-                        <td>Referer</td>
-                        <td>${req.headers.referer || '(none)'}</td>
-                    </tr>
-                    <tr>
-                        <td>User Agent</td>
-                        <td>${req.headers['user-agent']}</td>
-                    </tr>
-                </table>
-            </div>
+            <h3>Common Issues:</h3>
+            <ul>
+                <li>Missing the "Save Changes" button at the bottom of the page</li>
+                <li>Not adding all three required URLs</li>
+                <li>Extra or missing slashes</li>
+                <li>Incorrect protocol (http vs https)</li>
+                <li>Spaces or special characters</li>
+            </ul>
             
-            <h2>Request Cookies</h2>
-            <pre>${req.headers.cookie || '(no cookies)'}</pre>
-            
-            <h2>Actions</h2>
-            <p><a href="/auth/discord">Login with Discord</a></p>
-            <p><a href="/auth/logout">Logout</a></p>
-            <p><a href="/">Go to Home Page</a></p>
+            <h2>Test Your Configuration:</h2>
+            <p><a href="/auth/discord">Try authenticating now</a></p>
         </body>
     </html>
     `);
 });
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
+// Debug session/auth status endpoint
+app.get('/debug-session', (req, res) => {
+    res.json({
+        isAuthenticated: req.isAuthenticated(),
+        sessionExists: !!req.session,
+        sessionID: req.sessionID,
+        sessionCookie: req.headers.cookie ? true : false,
+        user: req.user ? {
+            id: req.user.id,
+            username: req.user.username,
+            discord_id: req.user.discord_id
+        } : null,
+        cookies: req.headers.cookie,
+        headers: {
+            host: req.headers.host,
+            referer: req.headers.referer,
+            'user-agent': req.headers['user-agent']
+        }
+    });
+});
+
+// Error logging endpoint
+app.post('/api/log-error', (req, res) => {
+    console.error('[ERROR] Client-side error:', JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
+});
+
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route for all other requests to serve index.html
+app.get('*', (req, res) => {
+    // API routes should 404 if they haven't been matched by now
+    if (req.path.startsWith('/api/')) {
+        console.error(`[404] API route not found: ${req.path}`);
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // For all other routes, send the index.html file
+    console.log(`[ROUTE] Serving index.html for path: ${req.path}`);
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-}
-
-// Export the Express app for Vercel
-module.exports = app;
