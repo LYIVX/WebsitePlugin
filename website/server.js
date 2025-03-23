@@ -42,9 +42,25 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://enderfall.co.uk'],
-    credentials: true
+    origin: [
+        'http://localhost:3000',
+        'https://enderfall.co.uk',
+        'https://www.enderfall.co.uk'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
+
+// Handle redirects from www to non-www
+app.use((req, res, next) => {
+    if (req.hostname.startsWith('www.')) {
+        const newUrl = `https://enderfall.co.uk${req.originalUrl}`;
+        return res.redirect(301, newUrl);
+    }
+    next();
+});
+
 app.use(express.json());
 app.use(express.static('public'));
 app.use(session({

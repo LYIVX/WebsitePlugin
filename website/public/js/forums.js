@@ -2557,3 +2557,18 @@ async function testSummaryField() {
 
 // Make function available globally for testing from console
 window.testSummaryField = testSummaryField;
+
+// Get default avatar path
+function getDefaultAvatarPath() {
+    return '/assets/default-avatar.png';
+}
+
+// Update avatar URL references
+function getAvatarUrl(discord_id, avatar) {
+    if (discord_id && avatar) {
+        const isAnimated = avatar.startsWith('a_');
+        const ext = isAnimated ? 'gif' : 'png';
+        return `https://cdn.discordapp.com/avatars/${discord_id}/${avatar}.${ext}?size=128`;
+    }
+    return getDefaultAvatarPath();
+}
