@@ -9,6 +9,29 @@ const path = require('path');
 const commentsRouter = require('./routes/comments');
 const fs = require('fs');
 
+// Helper function to determine environment
+function getBaseUrl(req) {
+    // Check if running on Vercel
+    if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+    }
+    
+    // Check if we have a custom host header that might be set by Vercel
+    if (req && req.headers && req.headers.host) {
+        if (req.headers.host.includes('enderfall.co.uk')) {
+            return `https://${req.headers.host}`;
+        }
+    }
+    
+    // Check if in production environment
+    if (process.env.NODE_ENV === 'production') {
+        return 'https://enderfall.co.uk';
+    }
+    
+    // In development, use localhost
+    return 'http://localhost:3000';
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,7 +64,10 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 })();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'https://enderfall.co.uk', 'https://www.enderfall.co.uk'],
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.static('public'));
 app.use(session({
@@ -50,7 +76,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60000 * 60 * 24 // 24 hours
+        maxAge: 60000 * 60 * 24, // 24 hours
+        sameSite: 'lax',
+        httpOnly: true,
+        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
     }
 }));
 app.use(passport.initialize());
@@ -69,7 +98,10 @@ const scopes = ['identify', 'email', 'guilds.join'];
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_REDIRECT_URI,
+    callbackURL: (req) => {
+        const baseUrl = getBaseUrl(req);
+        return `${baseUrl}/auth/discord/callback`;
+    },
     scope: scopes,
     passReqToCallback: true
 }, async (req, accessToken, refreshToken, profile, done) => {
@@ -150,18 +182,41 @@ passport.use(new DiscordStrategy({
 app.get('/auth/discord', (req, res, next) => {
     // Store the origin for use in callback
     req.session.returnTo = req.headers.referer || '/';
+    console.log('[AUTH] Redirecting to Discord. Origin:', req.headers.referer);
+    console.log('[AUTH] Callback URL will be:', getBaseUrl(req) + '/auth/discord/callback');
     next();
 }, passport.authenticate('discord'));
 
 app.get('/auth/discord/callback',
-    passport.authenticate('discord', {
-        failureRedirect: '/'
-    }),
-    (req, res) => {
-        // Redirect to the original site or default to profile
-        const returnTo = req.session.returnTo || '/profile.html';
-        delete req.session.returnTo;
-        res.redirect(returnTo);
+    (req, res, next) => {
+        console.log('[AUTH] Received callback from Discord', req.url);
+        next();
+    },
+    (req, res, next) => {
+        passport.authenticate('discord', (err, user, info) => {
+            if (err) {
+                console.error('[AUTH] Error during authentication:', err);
+                return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+            }
+            
+            if (!user) {
+                console.error('[AUTH] Authentication failed, no user returned');
+                return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+            }
+            
+            req.logIn(user, (err) => {
+                if (err) {
+                    console.error('[AUTH] Login error:', err);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
+                }
+                
+                // Redirect to the original site or default to profile
+                const returnTo = req.session.returnTo || '/profile.html';
+                delete req.session.returnTo;
+                console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
+                return res.redirect(returnTo);
+            });
+        })(req, res, next);
     }
 );
 
@@ -1416,8 +1471,39 @@ app.get('/api/forum-user', async (req, res) => {
     }
 });
 
+// Status/health check endpoint
+app.get('/api/status', (req, res) => {
+    const baseUrl = getBaseUrl(req);
+    res.json({
+        status: 'online',
+        environment: process.env.NODE_ENV,
+        baseUrl: baseUrl,
+        callbackUrl: `${baseUrl}/auth/discord/callback`,
+        host: req.headers.host,
+        vercelUrl: process.env.VERCEL_URL || 'not set',
+        request: {
+            protocol: req.protocol,
+            originalUrl: req.originalUrl,
+            hostname: req.hostname,
+            path: req.path,
+            referer: req.headers.referer || 'none'
+        }
+    });
+});
+
 // Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Route for all other requests to serve index.html
 app.get('*', (req, res) => {
+    // API routes should 404 if they haven't been matched by now
+    if (req.path.startsWith('/api/')) {
+        console.error(`[404] API route not found: ${req.path}`);
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    
+    // For all other routes, send the index.html file
+    console.log(`[ROUTE] Serving index.html for path: ${req.path}`);
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
