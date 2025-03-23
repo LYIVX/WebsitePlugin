@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="/css/universal-button.css">
     <link rel="stylesheet" href="/css/toggle-button.css">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/forums.css">
+    <link rel="stylesheet" href="/components/toast/toast.css">
     
     <!-- Prism.js for syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
@@ -307,6 +310,7 @@
     </div>
 
     <script src="/js/shared.js"></script>
+    <script src="/components/toast/toast.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/js/toggle-button.js"></script>
     <script src="/js/forums.js"></script>
@@ -323,6 +327,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://kit.fontawesome.com/yourcode.js" crossorigin="anonymous"></script>
 </body>
 </html>
 
@@ -335,7 +340,6 @@
     overflow-y: auto !important; /* Use auto instead of scroll */
     border-radius: 1rem; /* Match modal border radius */
     background-color: #1e2233;
-    border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
@@ -390,6 +394,7 @@
     margin-left: 5px;
     padding: 5px 10px;
     border-radius: 5px;
+    background-color: var(--dark-mid);
 }
 
 /* Removing conflicting textarea styles */
@@ -441,25 +446,5 @@
     color: white;
     font-size: 0.9rem;
     font-weight: 500;
-}
-
-.forum-view-preview .forum-category.announcements {
-    background-color: #ff5722;
-}
-
-.forum-view-preview .forum-category.discussion {
-    background-color: #2196f3;
-}
-
-.forum-view-preview .forum-category.suggestions {
-    background-color: #4caf50;
-}
-
-.forum-view-preview .forum-category.help {
-    background-color: #9c27b0;
-}
-
-.forum-view-preview .forum-category.offtopic {
-    background-color: #607d8b;
 }
 </style> 

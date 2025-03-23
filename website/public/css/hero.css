@@ -1,0 +1,19 @@
+/* Styles for specific page sections */
+
+/* Hero section */
+.hero-content {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}

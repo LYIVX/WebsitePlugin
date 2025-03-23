@@ -50,6 +50,50 @@ function handleToggleChange(event) {
   // Save state to localStorage if ID is provided
   if (toggleId) {
     localStorage.setItem(`toggle_${toggleId}`, input.checked);
+    
+    // Special handling for theme toggles
+    if (toggleId === 'lightThemePreference') {
+      // This will be handled by the profile.js event listener
+      // but we'll add this here as a fallback
+      const hasAccentTheme = document.body.classList.contains('accent-theme');
+      
+      if (input.checked) {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('theme', 'dark');
+      }
+      
+      // Optional: Show feedback if showToast function is available
+      if (typeof window.showToast === 'function') {
+        const themeDesc = input.checked ? 'Light' : 'Dark';
+        const accentDesc = hasAccentTheme ? 'accent' : 'primary';
+        window.showToast(`${themeDesc} ${accentDesc} theme applied`, 'info');
+      }
+    }
+    
+    // Handle accent theme toggle
+    if (toggleId === 'accentThemePreference') {
+      // This will be handled by profile.js event listener
+      // but we'll add this here as a fallback
+      const isLightTheme = document.body.classList.contains('light-theme');
+      
+      if (input.checked) {
+        document.body.classList.add('accent-theme');
+        localStorage.setItem('accent_theme', 'true');
+      } else {
+        document.body.classList.remove('accent-theme');
+        localStorage.setItem('accent_theme', 'false');
+      }
+      
+      // Optional: Show feedback if showToast function is available
+      if (typeof window.showToast === 'function') {
+        const themeDesc = isLightTheme ? 'Light' : 'Dark';
+        const accentDesc = input.checked ? 'accent' : 'primary';
+        window.showToast(`${themeDesc} ${accentDesc} theme applied`, 'info');
+      }
+    }
   }
   
   // Call callback function if specified

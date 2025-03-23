@@ -77,8 +77,8 @@ form .toggle-container {
 }
 
 .universal-toggle input:checked + .universal-toggle-slider {
-  background: var(--toggle-active-color);
-  border-color: var(--toggle-active-color);
+  background: var(--theme-primary-color);
+  border-color: var(--theme-primary-color);
 }
 
 .universal-toggle input:checked + .universal-toggle-slider:before {
@@ -88,7 +88,7 @@ form .toggle-container {
 
 .universal-toggle-label {
   font-weight: 500;
-  color: var(--text-light, rgba(255, 255, 255, 0.6));
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
   display: inline-flex !important;
   align-items: center !important;

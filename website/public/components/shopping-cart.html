@@ -1,0 +1,111 @@
+<div class="shopping-cart-card" id="cartContainer">
+    <div class="tab-bar-nav">
+        <h3>Shopping Cart</h3>
+            <div class="cart-icon-container">
+                <button id="cartToggleBtn" class="cart-toggle-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
+                </button>
+            </div>
+        </div>
+        <div class="tab-bar-content" id="cartPanel">
+            <div id="cartItems" class="cart-items">
+                <!-- Cart items will be loaded here -->
+            </div>
+            
+            <p id="emptyCartMessage" class="empty-cart-message">Your cart is empty</p>
+            
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cartTotal">£0.00</span>
+                </div>
+                <div class="cart-actions">
+                    <button id="clearCartBtn" class="universal-btn secondary">Clear</button>
+                    <button id="checkoutBtn" class="universal-btn primary" disabled>Checkout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Force cart to update when component is loaded
+(function() {
+    console.log('Shopping cart component loaded');
+    
+    // Function to set up event listeners for cart buttons
+    function setupCartButtonListeners() {
+        console.log('Setting up cart button listeners');
+        
+        // Setup clear cart button
+        const clearCartBtn = document.getElementById('clearCartBtn');
+        if (clearCartBtn) {
+            clearCartBtn.addEventListener('click', () => {
+                console.log('Clear cart button clicked');
+                if (typeof cart !== 'undefined' && cart) {
+                    cart.clearCart();
+                } else {
+                    console.error('Cart not available');
+                    showToast('Unable to clear cart. Please try again.', 'error');
+                }
+            });
+            console.log('Clear cart button listener added');
+        } else {
+            console.warn('Clear cart button not found');
+        }
+        
+        // Setup checkout button
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', () => {
+                console.log('Checkout button clicked');
+                if (typeof cart !== 'undefined' && cart) {
+                    cart.checkout();
+                } else {
+                    console.error('Cart not available');
+                    showToast('Unable to checkout. Please try again.', 'error');
+                }
+            });
+            console.log('Checkout button listener added');
+        } else {
+            console.warn('Checkout button not found');
+        }
+        
+        // Setup cart toggle button
+        const cartToggleBtn = document.getElementById('cartToggleBtn');
+        const cartPanel = document.getElementById('cartPanel');
+        if (cartToggleBtn && cartPanel) {
+            cartToggleBtn.addEventListener('click', () => {
+                cartPanel.classList.toggle('cart-open');
+                console.log('Cart panel toggled');
+            });
+            console.log('Cart toggle button listener added');
+        } else {
+            console.warn('Cart toggle button or panel not found');
+        }
+    }
+    
+    // Update cart UI and setup listeners
+    if (typeof cart !== 'undefined' && cart) {
+        // Update the cart UI after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            console.log('Shopping cart component initializing cart UI');
+            cart.updateCartUI();
+            setupCartButtonListeners();
+        }, 200);
+    } else {
+        console.log('Cart not initialized yet, will try again');
+        // If cart is not available yet, try again later
+        setTimeout(() => {
+            if (typeof cart !== 'undefined' && cart) {
+                console.log('Shopping cart component initializing cart UI (delayed)');
+                cart.updateCartUI();
+                setupCartButtonListeners();
+            } else {
+                console.warn('Cart still not available after delay');
+            }
+        }, 1000);
+    }
+})();
+</script>

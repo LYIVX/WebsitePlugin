@@ -1,0 +1,133 @@
+/* Layout styles: containers, grids, etc. */
+.shop-container {
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    background: linear-gradient(135deg, var(--theme-bg-primary) 0%, var(--theme-bg-secondary) 100%);
+    min-height: 100vh;
+}
+
+.shop-header {
+    text-align: center;
+    margin-bottom: 0rem;
+    max-width: 1400px;
+    margin: 0 auto 0rem auto;
+    padding: 0 var(--spacing-md);
+}
+
+.shop-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--theme-text-primary);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    display: inline-block;
+}
+
+.shop-header p {
+    font-size: 1.1rem;
+    color: var(--theme-text-primary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Shop Layout */
+.shop-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem var(--spacing-md);
+    gap: 2rem;
+    position: relative;
+    align-items: start;
+    min-height: calc(100vh - 64px); /* Account for navbar height */
+}
+
+.shop-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.side-bar-content {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    height: auto;
+    max-height: calc(100vh - 2rem);
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.side-bar-content .tab-bar-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Grid system */
+.grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Tab bar layout */
+.tab-bar {
+    width: 100%;
+    margin: var(--spacing-lg) 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.tab-bar-nav {
+    display: flex;
+    background: rgba(106, 17, 203, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tab-bar-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-bar-nav h3 {
+    color: var(--theme-text-primary);
+    font-size: 1.2rem;
+    margin: 0;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    font-weight: 600;
+    width: 100%;
+}
+
+.tab-bar-content {
+    padding: 2rem;
+}
+
+.rank-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}

@@ -1,0 +1,192 @@
+/* Featured Ranks Slideshow Styles */
+.featured-ranks-slideshow {
+  position: relative;
+  overflow: hidden;
+}
+
+.rank-slideshow-container {
+  position: relative;
+  min-height: auto;
+  height: auto;
+}
+
+/* Slides styling */
+.rank-slide {
+  display: none;
+  opacity: 0;
+  transition: opacity var(--transition-base) ease-in-out;
+  position: relative;
+  height: auto;
+}
+
+.rank-slide.active {
+  display: block;
+  opacity: 1;
+}
+
+.rank-slideshow-loading {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.slideshow-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slideshow-controls-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slideshow-controls-bottom .slideshow-indicators {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.slideshow-nav-btn {
+  background: var(--primary-color);
+  color: var(--theme-text-primary);
+  border: none;
+  border-radius: 4px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.slideshow-nav-btn:hover {
+  background-color: var(--primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.slideshow-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--theme-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.slideshow-indicator.active {
+  background-color: var(--primary-color);
+  transform: scale(1.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Center all rank information in the slideshow */
+.rank-slideshow-container .rank-card {
+  text-align: center;
+}
+
+.rank-slideshow-container .rank-header {
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+}
+
+.rank-slideshow-container .rank-header i {
+  margin: 0 auto 8px;
+}
+
+.rank-slideshow-container .rank-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0rem;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.rank-slideshow-container .rank-category,
+.rank-slideshow-container .rank-position {
+  text-align: center;
+  width: 100%;
+}
+
+.rank-slideshow-container .rank-features {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left; /* Keep feature text left-aligned for readability */
+  display: inline-block; /* Allow the list to shrink to content width */
+}
+
+.rank-slideshow-container .card-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.rank-slideshow-container .rank-price {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  text-align: center;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+/* Tooltip Styles for Rank Features */
+.feature-tooltip {
+  position: fixed;
+  background: rgba(35, 40, 55, 0.95);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--primary-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 300px;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast) ease, visibility var(--transition-fast) ease;
+  word-break: break-word;
+  overflow: hidden;
+}
+
+.feature-tooltip.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.feature-tooltip-title {
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.rank-features li {
+  position: relative;
+  cursor: help;
+}
+
+/* For mobile devices, show tooltip on tap */
+@media (max-width: 768px) {
+  .feature-tooltip {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+}

@@ -3,10 +3,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Initialize any home page functionality here
         console.log('Home page initialized');
         
+        // Check if components are ready or wait for them
+        if (document.querySelector('#rankSlideshow')) {
+            console.log('Components already loaded, initializing features');
+            initializeHomePageFeatures();
+        } else {
+            console.log('Waiting for components to load');
+            document.addEventListener('components-loaded', function() {
+                console.log('Components loaded event received, initializing features');
+                setTimeout(initializeHomePageFeatures, 100); // Small delay to ensure DOM is ready
+            });
+        }
+    } catch (error) {
+        console.error('Error initializing home page:', error);
+    }
+});
+
+// Initialize all home page features
+function initializeHomePageFeatures() {
+    try {
+        // Check if slideshow elements exist
+        const slideshow = document.getElementById('rankSlideshow');
+        const indicators = document.getElementById('slideshowIndicators');
+        const prevBtn = document.getElementById('prevRankBtn');
+        const nextBtn = document.getElementById('nextRankBtn');
+        
+        console.log('Slideshow elements found:', {
+            slideshow: !!slideshow,
+            indicators: !!indicators,
+            prevBtn: !!prevBtn,
+            nextBtn: !!nextBtn
+        });
+        
         // Setup copy IP button
         setupCopyIpButton();
         
-        // Initialize the ranks slideshow
+        // Initialize the ranks slideshow - this is enough to handle the ranks
         initRanksSlideshow();
         
         // Setup avatar preview
@@ -21,9 +53,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Adjust grid spacing on the home page
         adjustHomePageGridSpacing();
     } catch (error) {
-        console.error('Error initializing home page:', error);
+        console.error('Error in initializeHomePageFeatures:', error);
     }
-});
+}
 
 // Setup copy IP button functionality
 function setupCopyIpButton() {
@@ -58,6 +90,7 @@ function setupCopyIpButton() {
 
 // Load featured ranks from the same data source as the shop
 function loadFeaturedRanks() {
+    console.log('Loading featured ranks...');
     // Featured ranks data (same as in tab-bar.js)
     const featuredRanks = [
         // First serverwide rank
@@ -119,70 +152,115 @@ function loadFeaturedRanks() {
     ];
 
     // Get the container element
-    const featuredRanksContainer = document.querySelector('.rank-grid.home-rank-grid');
-    if (!featuredRanksContainer) return;
+    const featuredRanksContainer = document.getElementById('rankSlideshow');
+    if (!featuredRanksContainer) {
+        console.error('Featured ranks container not found with ID "rankSlideshow"');
+        return;
+    }
+    
+    console.log('Found featured ranks container:', featuredRanksContainer);
     
     // Clear the container
     featuredRanksContainer.innerHTML = '';
     
-    // Check if on mobile
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-        featuredRanksContainer.classList.add('rank-grid-mobile');
-    }
-    
-    // Add each rank card
-    featuredRanks.forEach(rank => {
-        const rankCard = document.createElement('div');
-        rankCard.className = `rank-card ${formatClassName(rank.name)}`;
-
+    // Add each rank slide
+    featuredRanks.forEach((rank, index) => {
+        const slide = document.createElement('div');
+        slide.className = `rank-slide ${index === 0 ? 'active' : ''}`;
+        
         // Create mobile-optimized layout for features
         const featuresList = rank.features.map(feature => {
             const iconClass = getFeatureIcon(feature);
             return `<li><i class="fas ${iconClass}"></i> <span class="feature-text">${feature}</span></li>`;
         }).join('');
 
-        rankCard.innerHTML = `
-            <div class="rank-header">
-                <i class="fas ${rank.icon}"></i>
-                <h3>${rank.name}</h3>
-                <div class="rank-price">£${rank.price.toFixed(2)}</div>
-            </div>
-            <div class="rank-info">
-                <div class="rank-category">${rank.category} Rank</div>
-                <div class="rank-position">${rank.position} Tier</div>
-                <ul class="rank-features">
-                    ${featuresList}
-                </ul>
-                <button class="universal-btn secondary" onclick="window.location.href='/shop.html'">Purchase</button>
+        slide.innerHTML = `
+            <div class="rank-card ${formatClassName(rank.name)}">
+                <div class="rank-header">
+                    <i class="fas ${rank.icon}"></i>
+                    <h3>${rank.name}</h3>
+                    <div class="rank-price">£${rank.price.toFixed(2)}</div>
+                </div>
+                <div class="rank-info">
+                    <div class="rank-category">${rank.category} Rank</div>
+                    <div class="rank-position">${rank.position} Tier</div>
+                    <ul class="rank-features">
+                        ${featuresList}
+                    </ul>
+                    <button class="universal-btn secondary" onclick="window.location.href='/shop.html'">Purchase</button>
+                </div>
             </div>
         `;
 
-        featuredRanksContainer.appendChild(rankCard);
+        featuredRanksContainer.appendChild(slide);
     });
     
-    // Add feature tooltips for mobile
-    if (isMobile) {
-        const featureItems = featuredRanksContainer.querySelectorAll('.rank-features li');
-        featureItems.forEach(item => {
-            item.addEventListener('click', function() {
-                // Remove active class from all items
-                featureItems.forEach(i => i.classList.remove('active'));
-                // Add active class to clicked item
-                this.classList.add('active');
+    // Create or update indicators
+    const indicators = document.getElementById('slideshowIndicators');
+    if (indicators) {
+        indicators.innerHTML = '';
+        featuredRanks.forEach((_, index) => {
+            const indicator = document.createElement('div');
+            indicator.className = `slideshow-indicator ${index === 0 ? 'active' : ''}`;
+            indicator.addEventListener('click', () => {
+                const slides = featuredRanksContainer.querySelectorAll('.rank-slide');
+                
+                // Hide all slides and deactivate indicators
+                slides.forEach(s => s.classList.remove('active'));
+                indicators.querySelectorAll('.slideshow-indicator').forEach(i => i.classList.remove('active'));
+                
+                // Show selected slide and activate indicator
+                slides[index].classList.add('active');
+                indicator.classList.add('active');
             });
+            
+            indicators.appendChild(indicator);
         });
     }
     
-    // Add resize listener for responsive adjustments
-    window.addEventListener('resize', () => {
-        const isMobileNow = window.innerWidth <= 768;
-        if (isMobileNow) {
-            featuredRanksContainer.classList.add('rank-grid-mobile');
-        } else {
-            featuredRanksContainer.classList.remove('rank-grid-mobile');
-        }
-    });
+    // Setup navigation buttons
+    const prevBtn = document.getElementById('prevRankBtn');
+    const nextBtn = document.getElementById('nextRankBtn');
+    
+    if (prevBtn && nextBtn) {
+        let currentSlide = 0;
+        
+        prevBtn.addEventListener('click', () => {
+            const slides = featuredRanksContainer.querySelectorAll('.rank-slide');
+            const dots = indicators ? indicators.querySelectorAll('.slideshow-indicator') : [];
+            
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            
+            // Update slides
+            slides.forEach(s => s.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            
+            // Update indicators
+            if (dots.length > 0) {
+                dots.forEach(d => d.classList.remove('active'));
+                dots[currentSlide].classList.add('active');
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            const slides = featuredRanksContainer.querySelectorAll('.rank-slide');
+            const dots = indicators ? indicators.querySelectorAll('.slideshow-indicator') : [];
+            
+            currentSlide = (currentSlide + 1) % slides.length;
+            
+            // Update slides
+            slides.forEach(s => s.classList.remove('active'));
+            slides[currentSlide].classList.add('active');
+            
+            // Update indicators
+            if (dots.length > 0) {
+                dots.forEach(d => d.classList.remove('active'));
+                dots[currentSlide].classList.add('active');
+            }
+        });
+    }
+    
+    console.log('Featured ranks loaded successfully');
     
     // Dispatch event to notify that ranks have been loaded
     document.dispatchEvent(new CustomEvent('ranksLoaded'));
@@ -417,9 +495,6 @@ function updateAvatarPreview(rankId) {
     avatarImage.className = '';
     
     // Reset styles
-    avatarImage.style.boxShadow = 'none';
-    avatarImage.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-    avatarImage.style.borderRadius = 'var(--radius-md)';
     
     // Add a class to the avatar based on the rank
     if (rankId !== 'none') {
@@ -572,6 +647,8 @@ function adjustHomePageGridSpacing() {
 
 // Initialize the ranks slideshow in the sidebar
 function initRanksSlideshow() {
+    console.log('initRanksSlideshow started');
+
     // Featured ranks data - only include first and last ranks from each category
     const featuredRanks = [
         // Shadow Enchanter (First Serverwide Rank)
@@ -637,21 +714,35 @@ function initRanksSlideshow() {
     ];
 
     const slideshow = document.getElementById('rankSlideshow');
+    console.log('Slideshow element found:', !!slideshow);
+    
     const indicators = document.getElementById('slideshowIndicators');
+    console.log('Indicators element found:', !!indicators);
+    
     const prevBtn = document.getElementById('prevRankBtn');
+    console.log('Previous button found:', !!prevBtn);
+    
     const nextBtn = document.getElementById('nextRankBtn');
+    console.log('Next button found:', !!nextBtn);
     
     if (!slideshow || !indicators || !prevBtn || !nextBtn) {
-        console.error('Slideshow elements not found');
+        console.error('Slideshow elements not found', {
+            slideshow: slideshow,
+            indicators: indicators,
+            prevBtn: prevBtn,
+            nextBtn: nextBtn
+        });
         return;
     }
     
     // Clear loading state
+    console.log('Clearing slideshow contents');
     slideshow.innerHTML = '';
     
     let currentSlide = 0;
     
     // Create slides for each rank
+    console.log('Creating slides for ranks');
     featuredRanks.forEach((rank, index) => {
         const slide = document.createElement('div');
         slide.className = `rank-slide ${index === 0 ? 'active' : ''}`;
@@ -683,6 +774,7 @@ function initRanksSlideshow() {
         `;
         
         slideshow.appendChild(slide);
+        console.log(`Added slide ${index + 1} for ${rank.name}`);
         
         // Create indicator
         const indicator = document.createElement('div');
@@ -692,6 +784,8 @@ function initRanksSlideshow() {
         });
         indicators.appendChild(indicator);
     });
+    
+    console.log('All slides created');
     
     // Function to go to a specific slide
     function goToSlide(slideIndex) {
@@ -736,6 +830,7 @@ function initRanksSlideshow() {
     }
     
     // Add event listeners
+    console.log('Adding button event listeners');
     nextBtn.addEventListener('click', nextSlide);
     prevBtn.addEventListener('click', prevSlide);
     
@@ -752,7 +847,7 @@ function initRanksSlideshow() {
         slideInterval = setInterval(nextSlide, 5000);
     });
     
-    console.log('Ranks slideshow initialized');
+    console.log('Ranks slideshow initialization complete');
 }
 
 // Helper function to determine the appropriate icon for a feature
@@ -779,4 +874,75 @@ function getFeatureIcon(feature) {
     
     // Default icon
     return 'fa-check-circle';
+}
+
+// Toast notification function with close button
+function showToast(message, type = 'info') {
+    // Import and use the new toast component if it's available
+    if (typeof window.showToast === 'function' && window.showToast !== showToast) {
+        return window.showToast(message, type);
+    }
+    
+    // Get or create toast container
+    const container = document.querySelector('.toast-container') || createToastContainer();
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Create icon element
+    const icon = document.createElement('i');
+    icon.className = getToastIcon(type);
+    toast.appendChild(icon);
+    
+    // Create message span
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'toast-message';
+    messageSpan.textContent = message;
+    toast.appendChild(messageSpan);
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'toast-close';
+    closeBtn.addEventListener('click', () => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    });
+    toast.appendChild(closeBtn);
+    
+    // Add to container
+    container.appendChild(toast);
+    
+    // Show toast with animation
+    setTimeout(() => {
+        toast.classList.add('show');
+        
+        // Auto dismiss after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }, 100);
+}
+
+function getToastIcon(type) {
+    switch (type) {
+        case 'success': return 'fas fa-check-circle';
+        case 'error': return 'fas fa-times-circle';
+        case 'warning': return 'fas fa-exclamation-circle';
+        default: return 'fas fa-info-circle';
+    }
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
 } 

@@ -1,0 +1,148 @@
+:root {
+  /* Brand Colors */
+  --brand-base: #7c4dff; --brand-dark: #5e35b1; --brand-light: #b388ff; --brand-accent: #00e5ff; --brand-accent-dark: #008a99; --brand-accent-light: #74f1ff;
+  /* System Colors */
+  --sys-success: #00c853; --sys-warning: #ffd600; --sys-error: #ff1744;
+  /* Type Colors */
+  --type-head: #2c3e50; --type-body: #546e7a; --type-dim: #b0bec5; --type-light: #ffffff;
+  /* Light Mode */
+  --light-base: #ffffff; --light-alt: #f8fafc; --light-dim: #f5f7fa;
+  /* Dark Mode */
+  --dark-void: #000000; --dark-abyss: #050505; --dark-deep: #0a0a0a; --dark-mid: #141414; --dark-base: #1a1a1a;
+  /* Borders & Effects */
+  --border-base: #e0e0e0; --border-hover: #b0bec5; --border-dark: rgba(255,255,255,0.1);
+  --fx-hover: rgba(124,77,255,0.1);
+  --fx-shadow-sm: 0 2px 4px rgba(0,0,0,0.1); --fx-shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --fx-shadow-lg: 0 10px 15px rgba(0,0,0,0.1); --fx-shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+  /* Spacing */
+  --space-xs: 0.25rem; --space-sm: 0.5rem; --space-md: 1rem; --space-lg: 1.5rem; --space-xl: 2rem;
+  /* External Brands */
+  --discord-color: #7289DA;
+  /* Special Colors */
+  --gold-color: #ffe600;
+  /* Tab Header Colors */
+  --tab-header-primary: rgba(106, 17, 203, 0.3);
+  --tab-header-accent: rgba(17, 203, 194, 0.3);
+  /* Theme Colors - will be used with theme switching */
+  --theme-primary-color: var(--brand-base);
+  --theme-primary-dark: var(--brand-dark);
+  --theme-primary-light: var(--brand-light);
+  --theme-bg-primary: var(--brand-dark);
+  --theme-bg-secondary: var(--dark-deep);
+  --theme-bg-tertiary: var(--dark-mid);
+  --theme-text-primary: var(--type-light);
+  --theme-text-secondary: var(--type-dim);
+  --theme-tab-header: var(--tab-header-primary);
+  --theme-border: var(--border-dark);
+  --theme-hover: rgba(255,255,255,0.1);
+  --theme-active: rgba(106,17,203,0.4);
+  --theme-card-bg: rgba(30,34,49,0.95);
+  --theme-navbar-bg: rgba(20, 24, 39, 0.95);
+  --theme-input-bg: var(--dark-mid);
+  --theme-input-text: var(--type-light);
+
+  /* Legacy Mappings */
+  --primary-color: var(--brand-base); --primary-dark: var(--brand-dark); --primary-light: var(--brand-light);
+  --accent-color: var(--brand-accent); --accent-dark: var(--brand-accent-dark); --accent-light: var(--brand-accent-light);
+  --success-color: var(--sys-success); --warning-color: var(--sys-warning); --error-color: var(--sys-error);
+  --text-primary: var(--type-head); --text-secondary: var(--type-body);
+  --text-light: var(--type-dim); --text-white: var(--type-light);
+  --bg-primary: var(--theme-bg-primary); 
+  --bg-secondary: var(--theme-bg-secondary); 
+  --bg-light: var(--light-base);
+  --bg-dark: var(--theme-bg-primary); 
+  --bg-darker: var(--theme-bg-secondary); 
+  --bg-darkest: var(--theme-bg-tertiary);
+  --bg-abyss: var(--dark-abyss); --bg-void: var(--dark-void); --bg-hover: var(--theme-hover);
+  --border-color: var(--theme-border);
+  --shadow-sm: var(--fx-shadow-sm); --shadow-md: var(--fx-shadow-md);
+  --shadow-lg: var(--fx-shadow-lg); --shadow-xl: var(--fx-shadow-xl);
+  --spacing-xs: var(--space-xs); --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md); --spacing-lg: var(--space-lg); --spacing-xl: var(--space-xl);
+  /* Animation */
+  --transition-fast: 0.15s ease; --transition-base: 0.3s ease; --transition-slow: 0.5s ease;
+  /* Layout */
+  --radius-sm: 0.25rem; --radius-md: 0.5rem; --radius-lg: 1rem; --radius-full: 9999px;
+  /* For backwards compatibility */
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --background-color: var(--theme-bg-primary);
+  --background-dark: var(--theme-bg-secondary);
+  --text-color: var(--theme-text-primary);
+  --text-muted: var(--theme-text-secondary);
+  --transition-speed: var(--transition-base);
+  --card-bg: var(--theme-card-bg);
+  --card-shadow: var(--shadow-md);
+  --border-radius: var(--radius-md);
+  --danger-color: var(--sys-error);
+  
+  /* Rank Colors */
+  --rank-shadow: #940094; --rank-void: #370057; --rank-ethereal: #00e1ff; --rank-astral: #00ff62;
+  --rank-citizen: #4caf50; --rank-merchant: #8bc34a; --rank-councilor: #cddc39;
+  --rank-mayor: #ffc107; --rank-governor: #ff9800; --rank-noble: #ff5722;
+  --rank-duke: #f44336; --rank-king: #9c27b0; --rank-divine: #e91e63;
+  /* Legacy Rank Mappings */
+  --shadow-enchanter: var(--rank-shadow); --void-walker: var(--rank-void);
+  --ethereal-warden: var(--rank-ethereal); --astral-guardian: var(--rank-astral);
+  --citizen: var(--rank-citizen); --merchant: var(--rank-merchant);
+  --councilor: var(--rank-councilor); --mayor: var(--rank-mayor);
+  --governor: var(--rank-governor); --noble: var(--rank-noble);
+  --duke: var(--rank-duke); --king: var(--rank-king); --divine-ruler: var(--rank-divine);
+  /* Allow both with/without primary-color-rgb pattern */
+  --primary-rgb: 124, 77, 255;
+  --secondary-color: var(--accent-color);
+}
+
+/* Light Theme CSS Variables */
+body.light-theme {
+  --theme-bg-primary: var(--brand-dark);
+  --theme-bg-secondary: var(--light-alt);
+  --theme-bg-tertiary: var(--light-dim);
+  --theme-text-primary: var(--type-head);
+  --theme-text-secondary: var(--type-body);
+  --theme-border: var(--border-base);
+  --theme-hover: rgba(124,77,255,0.1);
+  --theme-card-bg: rgba(250, 250, 255, 0.95);
+  --theme-navbar-bg: rgba(250, 250, 255, 0.95);
+  --theme-input-bg: var(--light-base);
+  --theme-input-text: var(--type-head);
+}
+
+/* Accent Swap Theme - Uses accent colors as primary and primary as accent */
+body.accent-theme {
+  /* Keep current theme's background (works with both light/dark) */
+  --theme-primary-color: var(--brand-accent);
+  --theme-primary-dark: var(--brand-accent-dark);
+  --theme-primary-light: var(--brand-accent-light);
+  --theme-bg-primary: var(--brand-accent-dark);
+  --theme-bg-secondary: var(--dark-deep);
+  --primary-color: var(--brand-accent); 
+  --primary-dark: var(--brand-accent-dark); 
+  --primary-light: var(--brand-accent-light);
+  --accent-color: var(--brand-base);
+  --accent-dark: var(--brand-dark);
+  --accent-light: var(--brand-light);
+  --primary-rgb: 0, 229, 255; /* Updated RGB for brand-accent */
+
+  --theme-tab-header: var(--tab-header-accent);
+  
+  /* Update hover effects to match new primary color */
+  --theme-hover: rgba(0, 229, 255, 0.1);
+  --theme-active: rgba(17, 203, 203, 0.4);
+  --fx-hover: rgba(0, 229, 255, 0.1);
+}
+
+/* Override for light theme + accent theme together */
+body.light-theme.accent-theme {
+  --theme-bg-primary: var(--brand-accent-dark);
+  --theme-bg-secondary: var(--light-alt);
+
+  --theme-hover: rgba(0, 229, 255, 0.1);
+  
+  /* Ensure card backgrounds and other elements match light theme */
+  --theme-card-bg: rgba(250, 250, 255, 0.95);
+  --theme-navbar-bg: rgba(250, 250, 255, 0.95);
+  
+  /* More vibrant borders for better contrast with light theme */
+}

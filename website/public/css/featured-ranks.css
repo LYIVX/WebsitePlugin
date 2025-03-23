@@ -1,0 +1,133 @@
+/* Featured ranks component styles */
+.featured-ranks-slideshow {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.featured-ranks-slideshow .tab-bar-nav {
+  display: flex;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.featured-ranks-slideshow h3 {
+  color: var(--theme-text-primary);
+  font-size: 1.2rem;
+  margin: 0;
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  width: 100%;
+}
+
+.featured-ranks-slideshow .tab-bar-content {
+  padding: 1.5rem;
+}
+
+/* Featured ranks specific styles */
+.featured-ranks-slideshow .rank-card {
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+
+.featured-ranks-slideshow .rank-header {
+  margin: 0;
+  padding: 1.25rem 1rem 2.5rem;
+}
+
+.featured-ranks-slideshow .rank-features {
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 5px;
+  margin: 0.5rem 0 1rem;
+}
+
+.featured-ranks-slideshow .rank-features::-webkit-scrollbar {
+  width: 4px;
+}
+
+.featured-ranks-slideshow .rank-features::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.featured-ranks-slideshow .rank-features::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.featured-ranks-slideshow .rank-card .btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Ensure correct positioning of price */
+.featured-ranks-slideshow .rank-price {
+  bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+/* Specific styling for rank header in featured section */
+.featured-ranks-slideshow .rank-header i {
+  width: 40px;
+  height: 40px;
+  font-size: 1.4rem;
+}
+
+.featured-ranks-slideshow .rank-header h3 {
+  font-size: 1.2rem;
+  padding: 0;
+}
+
+
+.featured-ranks-slideshow {
+  position: relative;
+}
+
+.rank-slideshow-container {
+  min-height: 200px;
+  position: relative;
+}
+
+.rank-slideshow-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 150px;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+.slideshow-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.slideshow-controls-bottom {
+  margin-top: 1rem;
+}
+
+.slideshow-nav-btn {
+  background: none;
+  border: none;
+  color: var(--primary-dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: opacity 0.3s ease;
+}
+
+.slideshow-nav-btn:hover {
+  opacity: 1;
+}
+
+.slideshow-indicators {
+  display: flex;
+  gap: 0.5rem;
+}

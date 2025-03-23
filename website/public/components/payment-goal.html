@@ -1,0 +1,48 @@
+<div class="payment-goal-card">
+    <div class="tab-bar-nav">
+        <h3>Server Payment Goal</h3>
+    </div>
+    <div class="tab-bar-content">
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="paymentProgressFill" style="width: 15%;"></div>
+            </div>
+            <div class="progress-text" id="paymentProgressText">15% Complete</div>
+        </div>
+        <p class="goal-info">Help us reach our monthly server costs!</p>
+        <div class="card-button-container">
+            <a href="/shop.html" class="universal-btn primary">Support Server</a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize with default values
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the progress elements
+    const progressFill = document.getElementById('paymentProgressFill');
+    const progressText = document.getElementById('paymentProgressText');
+    
+    // Set default values directly - this matches the original appearance
+    if (progressFill && !progressFill.style.width) {
+        progressFill.style.width = '15%';
+    }
+    
+    if (progressText && progressText.textContent === '') {
+        progressText.textContent = '15% Complete';
+    }
+    
+    // If SITE_CONFIG is available, use its values
+    if (window.SITE_CONFIG && SITE_CONFIG.paymentGoal) {
+        const progressValue = SITE_CONFIG.paymentGoal.current || 15;
+        
+        if (progressFill) {
+            progressFill.style.width = progressValue + '%';
+        }
+        
+        if (progressText) {
+            progressText.textContent = progressValue + '% Complete';
+        }
+    }
+});
+</script>

@@ -1,0 +1,358 @@
+/* Rank Cards */
+.ranks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.rank-card,
+.rank-card:hover,
+.rank-card:before,
+.rank-card:after,
+.rank-card *,
+.home-rank-grid .rank-card,
+.home-rank-grid .rank-card:hover {
+  border: 0 !important;
+  border-color: transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  outline: none !important;
+}
+
+.rank-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 0 1.5rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.rank-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+
+.rank-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem 1rem 3.5rem;
+  margin: 0 -1.5rem 1rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.rank-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* Shimmer animation for rank headers */
+.rank-header::after {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  width: 400%;
+  height: 400%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.4) 55%,
+    rgba(255, 255, 255, 0) 55%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  z-index: 1;
+  pointer-events: none;
+  animation: shimmer 5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+.rank-header i {
+  font-size: 1.8rem;
+  color: var(--text-white);
+  background: rgba(0, 0, 0, 0.3);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: var(--transition-fast);
+}
+
+.rank-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-white);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.rank-price {
+  position: absolute;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--text-white);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  margin: 0;
+  padding: 0.25rem 0;
+  background: transparent;
+}
+
+/* Rank background colors */
+.shadow-enchanter .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-shadow) 0%, var(--rank-shadow) 50%, var(--gold-color) 100%);
+}
+
+.void-walker .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-void) 0%, var(--rank-void) 50%, var(--gold-color) 100%);
+}
+
+.ethereal-warden .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-ethereal) 0%, var(--rank-ethereal) 50%, var(--gold-color) 100%);
+}
+
+.astral-guardian .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-astral) 0%, var(--rank-astral) 50%, var(--gold-color) 100%);
+}
+
+/* Towny Rank Styles */
+.citizen .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-citizen) 0%, var(--rank-citizen) 50%, var(--gold-color) 100%);
+}
+
+.merchant .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-merchant) 0%, var(--rank-merchant) 50%, var(--gold-color) 100%);
+}
+
+.councilor .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-councilor) 0%, var(--rank-councilor) 50%, var(--gold-color) 100%);
+}
+
+.mayor .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-mayor) 0%, var(--rank-mayor) 50%, var(--gold-color) 100%);
+}
+
+.governor .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-governor) 0%, var(--rank-governor) 50%, var(--gold-color) 100%);
+}
+
+.noble .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-noble) 0%, var(--rank-noble) 50%, var(--gold-color) 100%);
+}
+
+.duke .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-duke) 0%, var(--rank-duke) 50%, var(--gold-color) 100%);
+}
+
+.king .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-king) 0%, var(--rank-king) 50%, var(--gold-color) 100%);
+}
+
+.divine-ruler .rank-header::before {
+  background: linear-gradient(135deg, var(--rank-divine) 0%, var(--rank-divine) 50%, var(--gold-color) 100%);
+}
+
+/* Rank Features */
+.rank-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.rank-features li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--theme-text-primary);
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+.rank-features li i {
+  color: var(--theme-text-primary);
+  margin-right: 0.5rem;
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+}
+
+.rank-features li:hover i {
+  transform: scale(1.2);
+}
+
+.rank-card .btn-primary {
+  margin-top: auto;
+  width: 100%;
+  padding: var(--space-md);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  background: var(--brand-base);
+  color: var(--type-light);
+  border: none;
+  border-radius: var(--radius-lg);
+  transition: var(--transition-fast);
+}
+
+.rank-card .btn-primary:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Rank Badge */
+.rank-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: linear-gradient(to right, var(--warning-color), var(--error-color));
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.rank-description {
+  color: var(--text-light);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Home Rank Grid */
+.home-rank-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.home-rank-grid .rank-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  padding-bottom: 2rem;
+}
+
+.home-rank-grid .btn-primary {
+  margin-top: auto;
+  width: 100%;
+  padding: var(--space-md);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-fast);
+}
+
+.home-rank-grid .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--fx-shadow-md);
+}
+
+.rank-category {
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--theme-text-primary);
+  padding: 0.3rem 0.8rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  display: inline-block;
+  margin: 0 auto 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.rank-position {
+  color: var(--theme-text-primary);
+  font-size: 0.8rem;
+  display: inline-block;
+  margin: 0 auto 0.8rem;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.rank-position:before {
+  content: '•';
+  margin-right: 0.3rem;
+}
+
+.rank-position:after {
+  content: '•';
+  margin-left: 0.3rem;
+}
+
+@media (max-width: 1200px) {
+  .home-rank-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-rank-grid, .rank-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

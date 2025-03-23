@@ -1,0 +1,215 @@
+/* Avatar Preview Card Styles */
+.avatar-preview-card,
+.payment-goal-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-preview-card {
+  flex: 0 0 auto;
+}
+
+.avatar-preview-card h3 {
+  color: var(--theme-text-primary);
+  font-size: 1.2rem;
+  margin: 0;
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  width: 100%;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 200px;
+  aspect-ratio: 1/1;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  position: relative;
+  padding-top: 40px;
+}
+
+.minecraft-nametag {
+  text-align: center;
+  width: 100%;
+  position: absolute;
+  top: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-family: 'Minecraft', 'Inter', sans-serif;
+  font-size: 16px;
+  white-space: nowrap;
+  z-index: 10;
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.minecraft-nametag .rank-prefix {
+  font-weight: bold;
+  margin-right: 4px;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5px;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 3rem;
+}
+
+#avatarActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding-top: 1rem;
+}
+
+.link-info {
+  font-size: 0.9rem;
+  text-align: center;
+
+}
+
+#linkAccountBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: var(--radius-md);
+}
+
+#linkAccountBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.preview-label {
+  display: block;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.preview-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--dark-mid);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--type-light);
+  font-size: 0.9rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: all 0.2s ease;
+}
+
+.preview-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2);
+}
+
+.preview-select option {
+  background: var(--dark-mid);
+  color: var(--type-light);
+  padding: 0.5rem;
+}
+
+/* Avatar Rank Preview Effects */
+#avatarImage {
+  transition: all 0.3s ease;
+}
+
+/* Rank-specific preview styles */
+.shadow-enchanter-preview {
+  box-shadow: 0 0 15px 5px var(--rank-shadow);
+  border: 2px solid var(--rank-shadow);
+}
+
+.void-walker-preview {
+  box-shadow: 0 0 15px 5px var(--rank-void);
+  border: 2px solid var(--rank-void);
+}
+
+.ethereal-warden-preview {
+  box-shadow: 0 0 15px 5px var(--rank-ethereal);
+  border: 2px solid var(--rank-ethereal);
+}
+
+.astral-guardian-preview {
+  box-shadow: 0 0 15px 5px var(--rank-astral);
+  border: 2px solid var(--rank-astral);
+}
+
+/* Towny Rank Previews */
+.citizen-preview {
+  box-shadow: 0 0 15px 5px var(--rank-citizen);
+  border: 2px solid var(--rank-citizen);
+}
+
+.merchant-preview {
+  box-shadow: 0 0 15px 5px var(--rank-merchant);
+  border: 2px solid var(--rank-merchant);
+}
+
+.councilor-preview {
+  box-shadow: 0 0 15px 5px var(--rank-councilor);
+  border: 2px solid var(--rank-councilor);
+}
+
+.mayor-preview {
+  box-shadow: 0 0 15px 5px var(--rank-mayor);
+  border: 2px solid var(--rank-mayor);
+}
+
+.governor-preview {
+  box-shadow: 0 0 15px 5px var(--rank-governor);
+  border: 2px solid var(--rank-governor);
+}
+
+.noble-preview {
+  box-shadow: 0 0 15px 5px var(--rank-noble);
+  border: 2px solid var(--rank-noble);
+}
+
+.duke-preview {
+  box-shadow: 0 0 15px 5px var(--rank-duke);
+  border: 2px solid var(--rank-duke);
+}
+
+.king-preview {
+  box-shadow: 0 0 15px 5px var(--rank-king);
+  border: 2px solid var(--rank-king);
+}
+
+.divine-ruler-preview {
+  box-shadow: 0 0 15px 5px var(--rank-divine);
+  border: 2px solid var(--rank-divine);
+}

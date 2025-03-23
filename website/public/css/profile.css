@@ -1,0 +1,178 @@
+/* Profile Page Styles */
+
+/* Profile Overview Section */
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--theme-border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.minecraft-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--theme-border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+
+.profile-details {
+  flex: 1;
+}
+
+.profile-username {
+  font-size: 1.8rem;
+  margin-bottom: 0.25rem;
+  color: var(--theme-text-primary);
+}
+
+.profile-discord,
+.profile-minecraft {
+  font-size: 1rem;
+  color: var(--theme-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+/* Profile Stats */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.stat-card i {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--theme-text-secondary);
+}
+
+/* Ranks List */
+.ranks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* Purchase History Table */
+.purchases-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.purchases-table th,
+.purchases-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.purchases-table th {
+  color: var(--theme-text-primary);
+  font-weight: 600;
+}
+
+/* Settings Form */
+.settings-form {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--theme-text-primary);
+  font-weight: 500;
+}
+
+.toggle-container.column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Theme settings styles */
+.theme-preview {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 3px solid var(--primary-color);
+}
+
+.theme-description {
+  font-size: 0.9rem;
+  color: var(--theme-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Light theme specific styling for theme preview */
+body.light-theme .theme-preview {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-left-color: var(--primary-color);
+}
+
+/* Accent theme specific styling for theme preview */
+body.accent-theme .theme-preview {
+  border-left-color: var(--primary-color);
+}
+
+/* Combined light and accent theme styling */
+body.light-theme.accent-theme .theme-preview {
+  border-left-color: var(--primary-color);
+} 

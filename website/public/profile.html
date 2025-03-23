@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="/css/universal-button.css">
     <link rel="stylesheet" href="/css/toggle-button.css">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/components/toast/toast.css">
+    <link rel="stylesheet" href="/css/profile.css">
 </head>
 <body>
     <!-- Navigation will be loaded by shared.js -->
@@ -30,7 +32,10 @@
                 </div>
                 <div class="tab-bar-content">
                     <div class="profile-info">
-                        <img src="" alt="Profile Avatar" class="profile-avatar">
+                        <div class="avatar-container">
+                            <img src="" alt="Profile Avatar" class="profile-avatar">
+                            <img src="" alt="Minecraft Avatar" class="minecraft-avatar">
+                        </div>
                         <div class="profile-details">
                             <h1 class="profile-username"></h1>
                             <p class="profile-discord"></p>
@@ -100,6 +105,29 @@
                                     </label>
                                 </div>
                             </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Appearance</label>
+                                <div class="toggle-container column">
+                                    <label class="universal-toggle">
+                                        <input type="checkbox" id="lightThemePreference" data-toggle-id="lightThemePreference">
+                                        <span class="universal-toggle-slider"></span>
+                                        <span class="universal-toggle-label">Light Theme</span>
+                                    </label>
+                                    <label class="universal-toggle">
+                                        <input type="checkbox" id="accentThemePreference" data-toggle-id="accentThemePreference">
+                                        <span class="universal-toggle-slider"></span>
+                                        <span class="universal-toggle-label">Accent Color Swap</span>
+                                    </label>
+                                    <div class="theme-preview">
+                                        <p class="theme-description">
+                                            Customize your viewing experience with theme options. 
+                                            Light theme uses a brighter background, while accent color swap 
+                                            uses cyan as the primary color and purple as the accent.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </section>
@@ -131,13 +159,36 @@
         </div>
     </main>
 
+    <!-- Toast container for notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <!-- Footer removed - now loaded by shared.js -->
 
     <!-- Load shared JavaScript -->
     <script src="/js/shared.js"></script>
+    <script src="/components/toast/toast.js"></script>
     <script src="/js/toggle-button.js"></script>
     <script src="/js/profile.js"></script>
     <script src="/components/button.html"></script>
     <script src="/js/universal-button.js"></script>
 </body>
 </html>
+
+<style>
+    .input-with-button {
+        gap: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        margin-top: 1rem;
+        width: 100%;
+        font-weight: 500;
+        }
+
+    .input-with-button .universal-btn {
+        width: 50%;
+    }
+</style>
+
+

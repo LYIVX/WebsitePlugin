@@ -1,0 +1,103 @@
+<div class="feature-card payment-goal-card">
+    <div class="tab-bar-nav">
+        <h3>{{title}}</h3>
+    </div>
+    <div class="tab-bar-content">
+        <div class="feature-icon">
+            <i class="{{icon}}"></i>
+        </div>
+        <p class="goal-info">{{description}}</p>
+        
+        <!-- Button container that will be modified based on card type -->
+        <div class="card-button-container button-container-{{title}}">
+            <!-- Buttons will be added here dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the title to identify which card we're dealing with
+    const title = '{{title}}';
+    
+    // Find the button container specific to this feature card instance
+    const buttonContainer = document.querySelector('.button-container-' + title);
+    if (!buttonContainer) return;
+    
+    // Clear any existing content
+    buttonContainer.innerHTML = '';
+    
+    if (title === 'Discord') {
+        // Create Discord button
+        const discordButton = document.createElement('a');
+        discordButton.href = 'https://discord.gg/ellrijord';
+        discordButton.className = 'universal-btn primary';
+        discordButton.innerHTML = '<i class="fab fa-discord"></i> Join Discord';
+        discordButton.setAttribute('target', '_blank');
+        discordButton.setAttribute('rel', 'noopener');
+        buttonContainer.appendChild(discordButton);
+    } 
+    else if (title === 'Server IP') {
+        // Create Copy IP button
+        const copyButton = document.createElement('button');
+        copyButton.className = 'universal-btn primary';
+        copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy IP';
+        
+        // Add click event
+        copyButton.addEventListener('click', function() {
+            const serverIP = 'play.enderfall.com';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(serverIP).then(function() {
+                // Success feedback
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyButton.classList.add('copied');
+                
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    copyButton.innerHTML = originalText;
+                    copyButton.classList.remove('copied');
+                }, 2000);
+            }).catch(function() {
+                // Fallback for browsers that don't support clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = serverIP;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    // Success feedback
+                    const originalText = copyButton.innerHTML;
+                    copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    copyButton.classList.add('copied');
+                    
+                    // Reset after 2 seconds
+                    setTimeout(function() {
+                        copyButton.innerHTML = originalText;
+                        copyButton.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy', err);
+                }
+                
+                document.body.removeChild(textArea);
+            });
+        });
+        
+        buttonContainer.appendChild(copyButton);
+    } 
+    else if (title === 'Get Started') {
+        // Create Shop button
+        const shopButton = document.createElement('a');
+        shopButton.href = '/shop.html';
+        shopButton.className = 'universal-btn primary';
+        shopButton.innerHTML = '<i class="fas fa-shopping-cart"></i> Visit Shop';
+        buttonContainer.appendChild(shopButton);
+    }
+});
+</script>

@@ -2,6 +2,24 @@
 document.addEventListener('DOMContentLoaded', async () => {
     showLoading();
     try {
+        // Ensure cart is properly initialized and updated
+        if (typeof cart !== 'undefined' && cart) {
+            console.log('Shop page: Updating existing cart');
+            cart.loadCart(); // Force reload from localStorage
+            cart.updateCartUI(); // Update the UI
+        } else {
+            console.log('Shop page: Cart not available yet, waiting for it to initialize');
+            // Will be handled by cart.js initialization
+        }
+        
+        // Listen for the components-loaded event to update cart again
+        document.addEventListener('components-loaded', () => {
+            console.log('Components loaded, updating cart UI');
+            if (typeof cart !== 'undefined' && cart) {
+                setTimeout(() => cart.updateCartUI(), 300);
+            }
+        });
+        
         // Initialize tab bar
         const tabBar = new TabBar('shopTabs', {
             defaultTab: 'serverwide',
@@ -245,11 +263,6 @@ function updateAvatarPreview(rankId) {
     // Remove all previous rank preview classes
     avatarImage.className = '';
     
-    // Reset styles
-    avatarImage.style.boxShadow = 'none';
-    avatarImage.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-    avatarImage.style.borderRadius = 'var(--radius-md)';
-    
     // Add a class to the avatar based on the rank
     if (rankId !== 'none') {
         // Apply the CSS class for the rank preview
@@ -423,15 +436,52 @@ function showToast(message, type = 'info') {
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.textContent = message;
+    
+    // Create icon based on toast type
+    const icon = document.createElement('i');
+    let iconClass = 'fas fa-info-circle';
+    
+    switch (type) {
+        case 'success':
+            iconClass = 'fas fa-check-circle';
+            break;
+        case 'error':
+            iconClass = 'fas fa-times-circle';
+            break;
+        case 'warning':
+            iconClass = 'fas fa-exclamation-circle';
+            break;
+    }
+    
+    icon.className = iconClass;
+    toast.appendChild(icon);
+    
+    // Create message span
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    messageSpan.style.flex = '1';
+    toast.appendChild(messageSpan);
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'toast-close';
+    closeBtn.addEventListener('click', () => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    });
+    toast.appendChild(closeBtn);
 
     container.appendChild(toast);
 
-    // Remove toast after 3 seconds
+    // Remove toast after 3 seconds (unless closed manually)
     setTimeout(() => {
         toast.classList.add('fade-out');
         setTimeout(() => {
-            container.removeChild(toast);
+            if (toast.parentNode) {
+                container.removeChild(toast);
+            }
         }, 300);
     }, 3000);
 }
@@ -498,7 +548,7 @@ function setupShopSidebarScroll() {
 }
 
 // Process cart checkout
-async function processCheckout() {
+window.processCheckout = async function() {
     // Close modal
     const checkoutModal = document.getElementById('checkoutModal');
     if (checkoutModal) {

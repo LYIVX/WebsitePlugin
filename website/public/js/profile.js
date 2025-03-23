@@ -41,10 +41,55 @@ document.addEventListener('DOMContentLoaded', async () => {
                 console.log(`${event.detail.id} changed to: ${event.detail.checked}`);
                 saveSettings();
             }
+            
+            // Handle theme toggle changes
+            if (event.detail.id === 'lightThemePreference') {
+                console.log(`Theme preference changed to: ${event.detail.checked ? 'light' : 'dark'}`);
+                const isLightTheme = event.detail.checked;
+                const hasAccentTheme = document.body.classList.contains('accent-theme');
+                
+                // Apply theme immediately
+                if (isLightTheme) {
+                    document.body.classList.add('light-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.body.classList.remove('light-theme');
+                    localStorage.setItem('theme', 'dark');
+                }
+                
+                saveSettings();
+                
+                // Show feedback to user with the combined theme state
+                showToast(`${isLightTheme ? 'Light' : 'Dark'} ${hasAccentTheme ? 'accent' : 'primary'} theme applied`, 'info');
+            }
+            
+            // Handle accent theme toggle
+            if (event.detail.id === 'accentThemePreference') {
+                console.log(`Accent theme changed to: ${event.detail.checked ? 'on' : 'off'}`);
+                const useAccentTheme = event.detail.checked;
+                const isLightTheme = document.body.classList.contains('light-theme');
+                
+                // Apply accent theme independently of light/dark theme
+                if (useAccentTheme) {
+                    document.body.classList.add('accent-theme');
+                    localStorage.setItem('accent_theme', 'true');
+                } else {
+                    document.body.classList.remove('accent-theme');
+                    localStorage.setItem('accent_theme', 'false');
+                }
+                
+                saveSettings();
+                
+                // Show feedback to user with the combined theme state
+                showToast(`${isLightTheme ? 'Light' : 'Dark'} ${useAccentTheme ? 'accent' : 'primary'} theme applied`, 'info');
+            }
         });
         
         // Setup Minecraft username save button
         document.getElementById('saveMinecraftUsername').addEventListener('click', handleSaveUsername);
+        
+        // Initialize theme toggles with current theme
+        initThemeToggles();
         
     } catch (error) {
         console.error('Failed to initialize profile page:', error);
@@ -54,6 +99,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// Initialize theme toggles based on current theme settings
+function initThemeToggles() {
+    // Light/Dark theme toggle
+    const themeToggle = document.getElementById('lightThemePreference');
+    if (themeToggle) {
+        // Get current theme from localStorage
+        const currentTheme = localStorage.getItem('theme');
+        themeToggle.checked = currentTheme === 'light';
+        
+        // Make sure the theme is applied correctly
+        if (currentTheme === 'light') {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+    }
+    
+    // Accent theme toggle
+    const accentToggle = document.getElementById('accentThemePreference');
+    if (accentToggle) {
+        // Get current accent theme preference
+        const useAccentTheme = localStorage.getItem('accent_theme') === 'true';
+        accentToggle.checked = useAccentTheme;
+        
+        // Apply accent theme if enabled
+        if (useAccentTheme) {
+            document.body.classList.add('accent-theme');
+        } else {
+            document.body.classList.remove('accent-theme');
+        }
+    }
+}
+
 function updateProfileUI(user) {
     if (!user) {
         console.error('No user data provided to updateProfileUI');
@@ -62,6 +140,7 @@ function updateProfileUI(user) {
 
     // Update profile header
     const avatar = document.querySelector('.profile-avatar');
+    const minecraftAvatar = document.querySelector('.minecraft-avatar');
     const username = document.querySelector('.profile-username');
     const discordTag = document.querySelector('.profile-discord');
     const minecraftUser = document.querySelector('.profile-minecraft');
@@ -69,6 +148,15 @@ function updateProfileUI(user) {
 
     // Use the same avatar format as the navbar
     avatar.src = user.avatar_url || '/images/default-avatar.png';
+    
+    // Set Minecraft avatar if username is available
+    if (user.minecraft_username) {
+        minecraftAvatar.src = `https://mc-heads.net/head/${user.minecraft_username}`;
+        minecraftAvatar.style.display = 'block';
+    } else {
+        minecraftAvatar.style.display = 'none';
+    }
+    
     username.textContent = user.username || 'Unknown User';
     discordTag.textContent = `Discord: ${user.username}#${user.discriminator || '0000'}`;
     minecraftUser.textContent = user.minecraft_username ? 
@@ -103,6 +191,8 @@ function updateProfileUI(user) {
     if (discordToggle) {
         discordToggle.checked = Boolean(user.discord_notifications);
     }
+    
+    // No need to set the theme toggle here as we handle it separately in initThemeToggles()
     
     console.log('Updated UI with user data:', {
         minecraft_username: user.minecraft_username,
@@ -243,7 +333,17 @@ async function handleSaveUsername() {
         }
         
         const user = await response.json();
+        
+        // Update the profile UI with the new user data
         updateProfileUI(user);
+        
+        // Additionally, immediately update the Minecraft avatar
+        const minecraftAvatar = document.querySelector('.minecraft-avatar');
+        if (minecraftAvatar && username) {
+            minecraftAvatar.src = `https://mc-heads.net/head/${username}`;
+            minecraftAvatar.style.display = 'block';
+        }
+        
         showToast('Minecraft username saved', 'success');
     } catch (error) {
         console.error('Error saving Minecraft username:', error);
@@ -254,35 +354,49 @@ async function handleSaveUsername() {
 }
 
 async function saveSettings() {
-    showLoading();
-
     try {
-        const formData = {
-            email_notifications: getToggleState('emailNotifications'),
-            discord_notifications: getToggleState('discordNotifications')
-        };
-
-        const response = await fetch('/api/user/preferences', {
-            method: 'PATCH',
+        const emailNotifications = document.getElementById('emailNotifications').checked;
+        const discordNotifications = document.getElementById('discordNotifications').checked;
+        const themePreference = document.getElementById('lightThemePreference').checked ? 'light' : 'dark';
+        const accentThemePreference = document.getElementById('accentThemePreference').checked;
+        
+        console.log('Saving settings:', {
+            emailNotifications,
+            discordNotifications,
+            themePreference,
+            accentThemePreference
+        });
+        
+        // In a real implementation, we would save these to the server
+        const response = await fetch('/api/user/settings', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify({
+                email_notifications: emailNotifications,
+                discord_notifications: discordNotifications,
+                theme_preference: themePreference,
+                accent_theme_preference: accentThemePreference
+            })
         });
-
+        
         if (!response.ok) {
-            throw new Error('Failed to update settings');
+            throw new Error('Failed to save settings');
         }
         
-        const user = await response.json();
-        updateProfileUI(user);
-        showToast('Settings saved', 'success');
+        // We already update the theme in the toggle handler,
+        // so no need to do it again here
+        
+        // Store the theme preferences in localStorage to persist them
+        localStorage.setItem('theme', themePreference);
+        localStorage.setItem('accent_theme', accentThemePreference.toString());
+        
+        showToast('Settings saved successfully', 'success');
     } catch (error) {
-        console.error('Error saving settings:', error);
+        console.error('Failed to save settings:', error);
         showToast('Failed to save settings', 'error');
-    } finally {
-        hideLoading();
     }
 }
 
@@ -313,6 +427,77 @@ function getStatusIcon(status) {
         'failed': '<i class="fas fa-times-circle"></i>'
     };
     return icons[status.toLowerCase()] || '';
+}
+
+// Toast notification function with close button
+function showToast(message, type = 'info') {
+    // Import and use the new toast component if it's available
+    if (typeof window.showToast === 'function' && window.showToast !== showToast) {
+        return window.showToast(message, type);
+    }
+    
+    // Get or create toast container
+    const container = document.querySelector('.toast-container') || createToastContainer();
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Create icon element
+    const icon = document.createElement('i');
+    icon.className = getToastIcon(type);
+    toast.appendChild(icon);
+    
+    // Create message span
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'toast-message';
+    messageSpan.textContent = message;
+    toast.appendChild(messageSpan);
+    
+    // Create close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'toast-close';
+    closeBtn.addEventListener('click', () => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    });
+    toast.appendChild(closeBtn);
+    
+    // Add to container
+    container.appendChild(toast);
+    
+    // Show toast with animation
+    setTimeout(() => {
+        toast.classList.add('show');
+        
+        // Auto dismiss after 3 seconds
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }, 100);
+}
+
+function getToastIcon(type) {
+    switch (type) {
+        case 'success': return 'fas fa-check-circle';
+        case 'error': return 'fas fa-times-circle';
+        case 'warning': return 'fas fa-exclamation-circle';
+        default: return 'fas fa-info-circle';
+    }
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
 }
 
 // Removed functions

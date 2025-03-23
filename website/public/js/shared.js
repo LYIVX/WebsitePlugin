@@ -1,5 +1,12 @@
 // Shared functionality across all pages
 document.addEventListener('DOMContentLoaded', async () => {
+    // Load toast auto-injection script
+    if (!document.querySelector('script[src="/js/auto-inject-toast.js"]')) {
+        const toastScript = document.createElement('script');
+        toastScript.src = '/js/auto-inject-toast.js';
+        document.head.appendChild(toastScript);
+    }
+    
     // Load navigation
     try {
         const navResponse = await fetch('/components/nav.html');
@@ -14,6 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Initialize mobile menu toggle
         initMobileMenu();
+        
+        // Initialize theme toggle
+        initThemeToggle();
 
         // Load footer
         const footerResponse = await fetch('/components/footer.html');
@@ -72,6 +82,94 @@ function initMobileMenu() {
                 icon.classList.add('fa-bars');
             });
         });
+    }
+}
+
+// Initialize theme toggle functionality
+function initThemeToggle() {
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const savedAccentTheme = localStorage.getItem('accent_theme') === 'true';
+        
+        // Apply light/dark theme
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+        } else if (savedTheme === 'dark') {
+            document.body.classList.remove('light-theme');
+        } else {
+            // If no saved preference, check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Apply accent theme if enabled
+        if (savedAccentTheme) {
+            document.body.classList.add('accent-theme');
+        } else {
+            document.body.classList.remove('accent-theme');
+        }
+        
+        // Update the toggle button tooltip based on the current theme combination
+        updateThemeToggleTooltip(themeToggle);
+        
+        // Add event listener to toggle theme
+        themeToggle.addEventListener('click', () => {
+            const isCurrentlyLight = document.body.classList.contains('light-theme');
+            const hasAccentTheme = document.body.classList.contains('accent-theme');
+            
+            // Toggle light/dark theme
+            if (isCurrentlyLight) {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('theme', 'dark');
+                showToast(`Dark ${hasAccentTheme ? 'accent' : 'primary'} theme enabled`, 'info');
+            } else {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('theme', 'light');
+                showToast(`Light ${hasAccentTheme ? 'accent' : 'primary'} theme enabled`, 'info');
+            }
+            
+            // Preserve accent theme state when toggling light/dark
+            localStorage.setItem('accent_theme', hasAccentTheme.toString());
+            
+            // Update the toggle button tooltip
+            updateThemeToggleTooltip(themeToggle);
+        });
+    }
+}
+
+// Update the theme toggle button tooltip based on current theme combination
+function updateThemeToggleTooltip(toggleButton) {
+    if (!toggleButton) return;
+    
+    const isLightTheme = document.body.classList.contains('light-theme');
+    const hasAccentTheme = document.body.classList.contains('accent-theme');
+    
+    // Set the main button tooltip
+    if (isLightTheme) {
+        toggleButton.title = `Switch to dark ${hasAccentTheme ? 'accent' : 'primary'} theme`;
+        toggleButton.setAttribute('aria-label', `Switch to dark ${hasAccentTheme ? 'accent' : 'primary'} theme`);
+    } else {
+        toggleButton.title = `Switch to light ${hasAccentTheme ? 'accent' : 'primary'} theme`;
+        toggleButton.setAttribute('aria-label', `Switch to light ${hasAccentTheme ? 'accent' : 'primary'} theme`);
+    }
+    
+    // Set individual icon tooltips
+    const sunIcon = toggleButton.querySelector('.fa-sun');
+    const moonIcon = toggleButton.querySelector('.fa-moon');
+    
+    if (sunIcon) {
+        sunIcon.title = `Switch to light ${hasAccentTheme ? 'accent' : 'primary'} theme`;
+    }
+    
+    if (moonIcon) {
+        moonIcon.title = `Switch to dark ${hasAccentTheme ? 'accent' : 'primary'} theme`;
     }
 }
 
@@ -261,8 +359,14 @@ function initializeTheme() {
 
 // Toast notifications
 function showToast(message, type = 'info') {
+    // Import and use the new toast component if it's available
+    if (typeof window.showToast === 'function' && window.showToast !== showToast) {
+        return window.showToast(message, type);
+    }
+    
+    // Fallback to the original implementation if the component is not loaded
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type} fade-in`;
+    toast.className = `toast ${type}`;
     
     const icon = document.createElement('i');
     icon.className = getToastIcon(type);
@@ -271,6 +375,17 @@ function showToast(message, type = 'info') {
     const text = document.createElement('span');
     text.textContent = message;
     toast.appendChild(text);
+    
+    // Add close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'toast-close';
+    closeBtn.addEventListener('click', () => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    });
+    toast.appendChild(closeBtn);
     
     const container = document.querySelector('.toast-container') || createToastContainer();
     container.appendChild(toast);

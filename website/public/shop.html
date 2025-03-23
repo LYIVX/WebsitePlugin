@@ -10,7 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/css/universal-button.css">
+    <link rel="stylesheet" href="/css/layout.css">
+    
+    <!-- Single CSS import that includes all modules -->
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/shop.css">
+    <link rel="stylesheet" href="/components/toast/toast.css">
+    
+    <!-- Load configuration early -->
+    <script src="/js/site-config.js"></script>
     <script>
         // Early initialization to ensure navbar rendering
         document.addEventListener('DOMContentLoaded', () => {
@@ -35,101 +44,15 @@
                 <!-- Tab Bar Container -->
                 <div id="shopTabs"></div>
             </div>
-            
-            <!-- Avatar Preview Section -->
-            <div class="avatar-preview-section">
-                <div class="avatar-preview-card">
-                    <div class="tab-bar-nav">
-                        <h3>Your Minecraft Avatar</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div id="avatarPreview" class="avatar-preview">
-                            <!-- Avatar will be loaded here -->
-                            <div class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        </div>
-                        <div id="avatarActions">
-                            <button id="linkAccountBtn" class="universal-btn primary" style="display: none;">
-                                <i class="fas fa-link"></i> Link Minecraft Account
-                            </button>
-                            <p class="link-info">Link your Minecraft account in your profile settings to see your avatar here.</p>
-                            <div id="previewControls" style="display: none;">
-                                <label for="previewRankSelect" class="preview-label">Preview Rank:</label>
-                                <select id="previewRankSelect" class="preview-select">
-                                    <option value="none">No Rank</option>
-                                    <!-- Serverwide Ranks -->
-                                    <optgroup label="Serverwide Ranks">
-                                        <option value="shadow-enchanter">Shadow Enchanter</option>
-                                        <option value="void-walker">Void Walker</option>
-                                        <option value="ethereal-warden">Ethereal Warden</option>
-                                        <option value="astral-guardian">Astral Guardian</option>
-                                    </optgroup>
-                                    <!-- Towny Ranks -->
-                                    <optgroup label="Towny Ranks">
-                                        <option value="citizen">Citizen</option>
-                                        <option value="merchant">Merchant</option>
-                                        <option value="councilor">Councilor</option>
-                                        <option value="mayor">Mayor</option>
-                                        <option value="governor">Governor</option>
-                                        <option value="noble">Noble</option>
-                                        <option value="duke">Duke</option>
-                                        <option value="king">King</option>
-                                        <option value="divine-ruler">Divine Ruler</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Shopping Cart Card -->
-                <div class="payment-goal-card" id="cartContainer">
-                    <div class="tab-bar-nav">
-                        <h3>Shopping Cart</h3>
-                        <div class="cart-icon-container">
-                            <button id="cartToggleBtn" class="cart-toggle-btn">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="tab-bar-content" id="cartPanel">
-                        <div id="cartItems" class="cart-items">
-                            <!-- Cart items will be loaded here -->
-                        </div>
-                        
-                        <p id="emptyCartMessage" class="empty-cart-message">Your cart is empty</p>
-                        
-                        <div class="cart-footer">
-                            <div class="cart-total">
-                                <span>Total:</span>
-                                <span id="cartTotal">£0.00</span>
-                            </div>
-                            <div class="cart-actions">
-                                <button id="clearCartBtn" class="universal-btn secondary">Clear</button>
-                                <button id="checkoutBtn" class="universal-btn primary" disabled>Checkout</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Payment Goal Section -->
-                <div class="payment-goal-card">
-                    <div class="tab-bar-nav">
-                        <h3>Server Payment Goal</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 15%;"></div>
-                            </div>
-                            <div class="progress-text">15% Complete</div>
-                        </div>
-                        <p class="goal-info">Help us reach our monthly server costs!</p>
-                    </div>
-                </div>
+
+            <div class="side-bar-content">
+                <div data-component="avatar-preview"></div>
+                <div data-component="shopping-cart"></div>
+                <div data-component="payment-goal"></div>
             </div>
+
+
+            
         </div>
 
         <!-- Purchase Modal -->
@@ -161,12 +84,12 @@
                         <span id="checkoutTotal">£0.00</span>
                     </div>
                 </div>
-                <button class="universal-btn primary" onclick="processCheckout()">Complete Purchase</button>
+                <button id="completeCheckoutBtn" class="universal-btn primary">Complete Purchase</button>
             </div>
         </div>
 
         <!-- Toast Container -->
-        <div id="toastContainer"></div>
+        <div id="toastContainer" class="toast-container"></div>
     </main>
 
     <!-- Loading Overlay -->
@@ -177,11 +100,35 @@
 
     <!-- Scripts -->
     <script src="/js/shared.js"></script>
+    <script src="/components/toast/toast.js"></script>
     <script src="/js/components/tab-bar.js"></script>
+    <script src="/js/component-loader.js"></script>
     <script src="/js/cart.js"></script>
     <script src="/js/shop.js"></script>
     <script src="/components/button.html"></script>
     <script src="/js/universal-button.js"></script>
     <script src="/js/tooltips.js"></script>
+    
+    <!-- Additional script to ensure checkout button works -->
+    <script>
+        // Just set up the complete checkout button - let cart.js handle the other buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Setting up checkout button handler');
+            
+            // Complete purchase button in checkout modal
+            const completeCheckoutBtn = document.getElementById('completeCheckoutBtn');
+            if (completeCheckoutBtn) {
+                completeCheckoutBtn.addEventListener('click', function() {
+                    console.log('Complete checkout button clicked');
+                    if (typeof window.processCheckout === 'function') {
+                        window.processCheckout();
+                    } else {
+                        console.error('processCheckout function not found');
+                        alert('Checkout is currently unavailable. Please try again later.');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

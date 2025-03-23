@@ -1,0 +1,10 @@
+.payment-goal-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-bottom: 8rem;
+}
+
+.goal-info {
+  text-align: center;
+}

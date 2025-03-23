@@ -10,237 +10,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/css/universal-button.css">
-    <link rel="stylesheet" href="/css/mobile.css">
+    <link rel="stylesheet" href="/css/layout.css">
+
+    <!-- Single CSS import that includes all modules -->
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/components/toast/toast.css">
+    
+    <!-- Load configuration early -->
+    <script src="/js/site-config.js"></script>
 </head>
 <body>
     <!-- Navigation will be loaded by shared.js -->
     
     <main class="shop-container home-page fade-in">
-        <div class="shop-header slide-in">
-            <h1>Enderfall</h1>
-            <p>Experience Minecraft like never before with our unique ranks and features</p>
-        </div>
+        <div data-component="page-header" 
+             data-title="Enderfall" 
+             data-subtitle="Experience Minecraft like never before with our unique ranks and features"></div>
 
         <div class="shop-layout">
             <div class="shop-content">
-                <!-- Hero Section -->
-                <section class="tab-bar">
-                    <div class="tab-bar-nav">
-                        <h3>Welcome to Enderfall</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="hero-content">
-                            <p class="hero-subtitle">Join our thriving community and unlock amazing perks with our unique ranks</p>
-                            <div class="hero-buttons" style="margin-top: 2rem;">
-                                <a href="/shop.html" class="universal-btn primary">
-                                    <i class="fas fa-shopping-cart"></i>
-                                    Browse Ranks
-                                </a>
-                                <a href="#features" class="universal-btn secondary">
-                                    <i class="fas fa-star"></i>
-                                    View Features
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Features Section -->
-                <section id="features" class="tab-bar">
-                    <div class="tab-bar-nav">
-                        <h3>Server Features</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="grid grid-3">
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Unique Ranks</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-crown"></i>
-                                    </div>
-                                    <p class="goal-info">From Shadow Enchanter to Divine Ruler, unlock amazing perks and abilities</p>
-                                </div>
-                            </div>
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Towny System</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-city"></i>
-                                    </div>
-                                    <p class="goal-info">Build your empire with our advanced Towny system and nation management</p>
-                                </div>
-                            </div>
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Custom Features</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-magic"></i>
-                                    </div>
-                                    <p class="goal-info">Enjoy custom enchantments, particles, and special abilities</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- CTA Section -->
-                <section class="tab-bar">
-                    <div class="tab-bar-nav">
-                        <h3>Join Our Community</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="grid grid-3">
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Discord</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fab fa-discord"></i>
-                                    </div>
-                                    <p class="goal-info">Join our Discord community for updates, events, and to connect with other players</p>
-                                    <div class="card-button-container">
-                                        <a href="https://discord.gg/ellrijord" target="_blank" class="universal-btn primary">Join Discord</a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Server IP</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-server"></i>
-                                    </div>
-                                    <p class="goal-info">Connect to our server using the IP: play.enderfall.com</p>
-                                    <div class="card-button-container">
-                                        <button id="copyIpBtn" class="universal-btn primary">Copy IP</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="feature-card payment-goal-card">
-                                <div class="tab-bar-nav">
-                                    <h3>Get Started</h3>
-                                </div>
-                                <div class="tab-bar-content">
-                                    <div class="feature-icon">
-                                        <i class="fas fa-shopping-cart"></i>
-                                    </div>
-                                    <p class="goal-info">Browse our selection of ranks and upgrades in our shop</p>
-                                    <div class="card-button-container">
-                                        <a href="/shop.html" class="universal-btn primary">Visit Shop</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                <!-- Load modular components -->
+                <div data-component="hero-section"></div>
+                <div data-component="features-section"></div>
+                <div data-component="community-section"></div>
             </div>
             
-            <!-- Avatar and Payment Goal Section (Sidebar) -->
-            <div class="avatar-preview-section">
-                <!-- Avatar Preview Card -->
-                <div class="avatar-preview-card">
-                    <div class="tab-bar-nav">
-                        <h3>Your Minecraft Avatar</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div id="avatarPreview" class="avatar-preview">
-                            <!-- Avatar will be loaded here -->
-                            <div class="avatar-placeholder">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        </div>
-                        <div id="avatarActions">
-                            <button id="linkAccountBtn" class="universal-btn primary" style="display: none;">
-                                <i class="fas fa-link"></i> Link Minecraft Account
-                            </button>
-                            <p class="link-info">Link your Minecraft account in your profile settings to see your avatar here.</p>
-                            <div id="previewControls" style="display: none;">
-                                <label for="previewRankSelect" class="preview-label">Preview Rank:</label>
-                                <select id="previewRankSelect" class="preview-select">
-                                    <option value="none">No Rank</option>
-                                    <!-- Serverwide Ranks -->
-                                    <optgroup label="Serverwide Ranks">
-                                        <option value="shadow-enchanter">Shadow Enchanter</option>
-                                        <option value="void-walker">Void Walker</option>
-                                        <option value="ethereal-warden">Ethereal Warden</option>
-                                        <option value="astral-guardian">Astral Guardian</option>
-                                    </optgroup>
-                                    <!-- Towny Ranks -->
-                                    <optgroup label="Towny Ranks">
-                                        <option value="citizen">Citizen</option>
-                                        <option value="merchant">Merchant</option>
-                                        <option value="councilor">Councilor</option>
-                                        <option value="mayor">Mayor</option>
-                                        <option value="governor">Governor</option>
-                                        <option value="noble">Noble</option>
-                                        <option value="duke">Duke</option>
-                                        <option value="king">King</option>
-                                        <option value="divine-ruler">Divine Ruler</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Featured Ranks Slideshow -->
-                <div class="featured-ranks-slideshow payment-goal-card">
-                    <div class="tab-bar-nav">
-                        <h3>Featured Ranks</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="rank-slideshow-container" id="rankSlideshow">
-                            <div class="rank-slideshow-loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </div>
-                            <!-- Rank slides will be inserted here by JavaScript -->
-                        </div>
-                        <div class="slideshow-controls slideshow-controls-bottom">
-                            <button id="prevRankBtn" class="slideshow-nav-btn">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <div class="slideshow-indicators" id="slideshowIndicators"></div>
-                            <button id="nextRankBtn" class="slideshow-nav-btn">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Payment Goal Card -->
-                <div class="payment-goal-card">
-                    <div class="tab-bar-nav">
-                        <h3>Server Payment Goal</h3>
-                    </div>
-                    <div class="tab-bar-content">
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 15%;"></div>
-                            </div>
-                            <div class="progress-text">15% Complete</div>
-                        </div>
-                        <p class="goal-info">Help us reach our monthly server costs!</p>
-                        <div class="card-button-container">
-                            <a href="/shop.html" class="universal-btn primary">Support Server</a>
-                        </div>
-                    </div>
-                </div>
+            <!-- Sidebar components -->
+            <div class="side-bar-content">
+                <div data-component="avatar-preview"></div>
+                <div data-component="featured-ranks"></div>
+                <div data-component="payment-goal"></div>
             </div>
         </div>
     </main>
 
-    <!-- Footer removed - now loaded by shared.js -->
+    <!-- Toast container for notifications -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <!-- Load shared JavaScript -->
     <script src="/js/shared.js"></script>
+    <script src="/components/toast/toast.js"></script>
+    <script src="/js/component-loader.js"></script>
     <script src="/js/index.js"></script>
     <script src="/js/tooltips.js"></script>
     <script src="/components/button.html"></script>

@@ -230,6 +230,174 @@
   .cart-actions .btn {
     width: 100%;
   }
+
+  /* Responsive Navbar */
+  .mobile-menu-toggle {
+    display: block;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 1010;
+  }
+  
+  .navbar-container { 
+    flex-direction: column; 
+    height: auto; 
+    padding: 0; 
+    position: relative;
+  }
+  
+  .navbar-brand { 
+    padding: 1rem 2rem; 
+    height: auto; 
+    z-index: 1010;
+  }
+  
+  .navbar-menu {
+    display: none;
+    width: 100%;
+  }
+  
+  .navbar-menu.active {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: rgba(20, 24, 39, 0.95);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+  
+  .nav-links-container { 
+    flex-direction: column;
+    flex-wrap: wrap; 
+    margin: 0; 
+    border-radius: 0; 
+    height: auto; 
+  }
+  
+  .nav-link { 
+    width: 100%; 
+    text-align: center; 
+    padding: 1rem; 
+    height: 48px; 
+    justify-content: center; 
+  }
+  
+  .auth-container, .user-menu { 
+    width: 100%; 
+    justify-content: center; 
+    height: 48px; 
+    border-radius: 0; 
+  }
+  
+  .auth-container { 
+    margin-left: 0; 
+    padding-left: 0; 
+    border-left: none; 
+    border-top: 1px solid rgba(255,255,255,0.1); 
+  }
+  
+  .auth-button { 
+    width: 100%; 
+    justify-content: center; 
+    border-radius: 0; 
+    height: 48px; 
+    background: rgba(30,34,49,0.95); 
+  }
+  
+  .user-menu { 
+    padding: 0 0.75rem; 
+  }
+  
+  .dropdown-content { 
+    width: 100%; 
+    position: relative; 
+    margin-top: var(--spacing-sm); 
+  }
+
+  /* Grid system */
+  .grid-3, .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Shop layout */
+  .shop-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-preview-section {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Home page specific layout adjustments */
+  .home-page .shop-layout {
+    grid-template-columns: 1fr;
+    padding-top: 1rem;
+  }
+  
+  .home-page .avatar-preview-section {
+    position: static;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 2rem auto;
+    height: auto;
+    overflow-y: visible;
+    padding-bottom: 0;
+  }
+
+  /* Hero sections */
+  .hero h1 {
+    font-size: 3rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  /* Footer adjustments */
+  .footer-container {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .footer-menu {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .footer-links-container,
+  .footer-social-container {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .footer-link,
+  .social-icon {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+    height: auto;
+    justify-content: center;
+  }
+
+  /* Add theme toggle responsiveness to mobile view */
+  .theme-toggle {
+    position: absolute;
+    right: 60px;
+    top: 16px;
+  }
+  
+  .navbar-menu.active .theme-toggle {
+    position: relative;
+    right: auto;
+    top: auto;
+    margin: 1rem auto;
+  }
 }
 
 /* Small mobile devices */
@@ -336,6 +504,29 @@
   .minecraft-nametag {
     font-size: 0.9rem;
     padding: 0.3rem 0.6rem;
+  }
+
+  .shop-header h1 {
+    font-size: 2rem;
+  }
+  
+  .shop-header p {
+    font-size: 1rem;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-buttons .universal-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .featured-ranks-slideshow .slideshow-controls {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
 
@@ -537,4 +728,50 @@
   .shop-page .shop-layout {
     margin-top: 0;
   }
-} 
+}
+
+/* Print styles - hide non-essential elements */
+@media print {
+  .navbar, .footer, .sidebar, .avatar-preview-section, 
+  .slideshow-controls, button, .universal-btn {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+  }
+
+  main {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .shop-content {
+    width: 100%;
+  }
+
+  .tab-bar {
+    border: 1px solid #ddd;
+    margin: 1rem 0;
+    page-break-inside: avoid;
+  }
+
+  .tab-bar-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .home-rank-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .home-rank-grid, .rank-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Component</title>
+</head>
+<body>
+    <template id="toast-template">
+        <div class="toast">
+            <i class="toast-icon"></i>
+            <span class="toast-message"></span>
+            <button class="toast-close">&times;</button>
+        </div>
+    </template>
+
+    <script>
+        // This script will be extracted and executed when the component is loaded
+        class ToastElement extends HTMLElement {
+            constructor() {
+                super();
+                this.attachShadow({ mode: 'open' });
+                
+                // Get template from the document
+                const template = document.getElementById('toast-template');
+                if (template) {
+                    this.shadowRoot.appendChild(template.content.cloneNode(true));
+                    
+                    // Link to the CSS file
+                    const linkElem = document.createElement('link');
+                    linkElem.setAttribute('rel', 'stylesheet');
+                    linkElem.setAttribute('href', '/components/toast/toast.css');
+                    this.shadowRoot.appendChild(linkElem);
+                    
+                    // Handle close button click
+                    const closeBtn = this.shadowRoot.querySelector('.toast-close');
+                    if (closeBtn) {
+                        closeBtn.addEventListener('click', () => {
+                            this.remove();
+                        });
+                    }
+                }
+            }
+
+            // Set toast message
+            set message(value) {
+                const messageElement = this.shadowRoot.querySelector('.toast-message');
+                if (messageElement) {
+                    messageElement.textContent = value;
+                }
+            }
+            
+            // Set toast type (info, success, error, warning)
+            set type(value) {
+                const toast = this.shadowRoot.querySelector('.toast');
+                if (toast) {
+                    toast.className = `toast ${value}`;
+                    
+                    const iconElement = this.shadowRoot.querySelector('.toast-icon');
+                    if (iconElement) {
+                        let iconClass = 'fas fa-info-circle';
+                        
+                        switch (value) {
+                            case 'success':
+                                iconClass = 'fas fa-check-circle';
+                                break;
+                            case 'error':
+                                iconClass = 'fas fa-times-circle';
+                                break;
+                            case 'warning':
+                                iconClass = 'fas fa-exclamation-circle';
+                                break;
+                        }
+                        
+                        iconElement.className = `toast-icon ${iconClass}`;
+                    }
+                }
+            }
+        }
+
+        // Register the custom element
+        if (!customElements.get('toast-notification')) {
+            customElements.define('toast-notification', ToastElement);
+        }
+    </script>
+</body>
+</html> 

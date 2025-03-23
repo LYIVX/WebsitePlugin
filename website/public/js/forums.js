@@ -2100,16 +2100,42 @@ function showToast(message, type = 'info') {
     if (type === 'error') icon = 'fa-exclamation-circle';
     if (type === 'warning') icon = 'fa-exclamation-triangle';
     
-    toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    // Create the toast structure with proper elements
+    const iconElement = document.createElement('i');
+    iconElement.className = `fas ${icon}`;
+    toast.appendChild(iconElement);
+    
+    const messageSpan = document.createElement('span');
+    messageSpan.textContent = message;
+    messageSpan.style.flex = '1';
+    toast.appendChild(messageSpan);
+    
+    // Add close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.className = 'toast-close';
+    closeBtn.addEventListener('click', () => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    });
+    toast.appendChild(closeBtn);
+    
     toastContainer.appendChild(toast);
     
     // Show the toast
     setTimeout(() => toast.classList.add('show'), 10);
     
-    // Hide after a delay
+    // Hide after a delay (unless manually closed)
     setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => toast.remove(), 300);
+        if (toast.parentNode) {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }
     }, 3000);
 }
 

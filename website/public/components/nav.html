@@ -14,17 +14,20 @@
                 <a href="/shop.html" class="nav-link" data-page="shop">Shop</a>
                 <a href="/forums.html" class="nav-link" data-page="forums">Forums</a>
                 <a href="/profile.html" class="nav-link" data-page="profile">Profile</a>
-                <div class="auth-container">
-                    <button class="auth-button" onclick="handleAuth()">
-                        <i class="fab fa-discord"></i>
-                        <span class="auth-text">Login</span>
-                    </button>
-                    <div class="user-menu" style="display: none;">
-                        <img src="" alt="Avatar" class="user-avatar">
-                        <span class="username"></span>
-                    </div>
-                </div>
+
+                <a class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle light/dark theme"> 
+                    <i class="fas fa-sun" title="Switch to light theme"></i>
+                    <i class="fas fa-moon" title="Switch to dark theme"></i> </a>
+
+                <a class="auth-button" onClick="handleAuth()"> 
+                    <i class="fab fa-discord"> </i>
+                        <span class="auth-text">Login</span> </a>
+
+                <a class="user-menu" style="display: none;"> 
+                    <img src="" alt="Avatar" class="user-avatar"></img>
+                    <span class="username"></span> </a>            
             </div>
+            <!-- Theme toggle button -->
         </div>
     </div>
 </nav>
