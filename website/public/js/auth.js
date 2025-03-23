@@ -137,4 +137,61 @@ document.addEventListener('DOMContentLoaded', function() {
             handleLoginClick();
         });
     });
+});
+
+// Debug auth function - add to the bottom of the file
+async function debugAuth() {
+    try {
+        console.log("=== CLIENT AUTH DEBUG ===");
+        console.log("Local storage auth check:", localStorage.getItem('auth') === 'true');
+        console.log("Document cookie exists:", document.cookie.length > 0);
+        console.log("Raw cookies:", document.cookie);
+        
+        // Check server-side auth
+        const response = await fetch('/debug-session', {
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log("=== SERVER AUTH DEBUG ===");
+            console.log("Server says authenticated:", data.isAuthenticated);
+            console.log("Session exists:", data.sessionExists);
+            console.log("Session cookie exists:", data.sessionCookie);
+            console.log("User data:", data.user);
+            
+            if (!data.isAuthenticated && data.sessionExists) {
+                console.log("ISSUE DETECTED: Session exists but not authenticated");
+            }
+            if (data.isAuthenticated && !data.user) {
+                console.log("ISSUE DETECTED: Authenticated but no user data");
+            }
+            if (localStorage.getItem('auth') === 'true' && !data.isAuthenticated) {
+                console.log("ISSUE DETECTED: Client thinks logged in but server says no");
+                // Force refresh auth state
+                localStorage.removeItem('auth');
+                console.log("Cleared local auth state");
+            }
+            
+            return data;
+        } else {
+            console.error("Failed to get auth debug info from server");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error in auth debugging:", error);
+        return null;
+    }
+}
+
+// Make function available globally
+window.debugAuth = debugAuth;
+
+// Auto-run on page load to diagnose issues
+document.addEventListener('DOMContentLoaded', () => {
+    // Call with delay to ensure page is fully loaded
+    setTimeout(debugAuth, 1000);
 }); 

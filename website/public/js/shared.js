@@ -197,20 +197,48 @@ async function checkAuthState() {
         
         if (loggedOut) {
             // User has explicitly logged out, keep them logged out
+            console.log('[AUTH] User explicitly logged out, keeping logged out state');
             updateUIForGuest();
             return;
         }
         
         // Otherwise, check with the API
-        const response = await fetch('/api/user');
+        console.log('[AUTH] Checking authentication with server...');
+        const response = await fetch('/api/user', {
+            credentials: 'include',  // Ensure cookies are sent
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
+            }
+        });
+        
+        console.log('[AUTH] Server response status:', response.status);
+        
         if (response.ok) {
             const user = await response.json();
+            console.log('[AUTH] User authenticated:', user.username);
+            
+            // Store auth state in localStorage for quick checking
+            localStorage.setItem('auth', 'true');
+            localStorage.setItem('username', user.username);
+            
             updateUIForUser(user);
         } else {
+            console.log('[AUTH] Not authenticated, response:', response.status);
+            // Clear any stale auth state
+            localStorage.removeItem('auth');
+            localStorage.removeItem('username');
+            
+            // If we hit 401, we need to clear the session
+            if (response.status === 401) {
+                console.log('[AUTH] 401 Unauthorized - clearing session state');
+                // Potentially add a server call to explicitly clear the session
+            }
+            
             updateUIForGuest();
         }
     } catch (error) {
-        console.error('Error checking auth state:', error);
+        console.error('[AUTH] Error checking auth state:', error);
         updateUIForGuest();
     }
 }
@@ -359,37 +387,45 @@ async function handleLogout(event) {
     if (event) event.preventDefault();
     showLoading();
     try {
-        // In a real implementation, this would call the server to invalidate the session
-        // For our demo, we'll just update the UI directly
+        console.log('[AUTH] Logging out...');
         
-        // Try to call the logout API if it exists
-        try {
-            const response = await fetch('/auth/logout', { method: 'POST' });
-            // If the API call fails, we'll still proceed with the client-side logout
-        } catch (error) {
-            console.warn('API logout failed, proceeding with client-side logout:', error);
-        }
-        
-        // Set logout flag in localStorage
+        // Set logged_out flag to prevent auto-login attempts
         localStorage.setItem('logged_out', 'true');
         
-        // Update UI for guest state
+        // Clear any auth-related data
+        localStorage.removeItem('auth');
+        localStorage.removeItem('username');
+        
+        // Call the server logout endpoint
+        try {
+            console.log('[AUTH] Calling server logout endpoint');
+            const response = await fetch('/auth/logout', { 
+                credentials: 'include'  // Important: include cookies
+            });
+            console.log('[AUTH] Server logout response:', response.status);
+        } catch (error) {
+            console.warn('[AUTH] Server logout failed:', error);
+        }
+        
+        // Update UI regardless of server response
         updateUIForGuest();
         
-        // Clear any stored user data
-        localStorage.removeItem('user');
-        sessionStorage.removeItem('user');
-        
         // Show success message
-        showToast('You have been logged out successfully', 'success');
+        showToast('Logged out successfully', 'success');
         
-        // Redirect to home page after a short delay
-        setTimeout(() => {
+        // Redirect to home page if on a protected page
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/profile') || currentPath.includes('/dashboard')) {
             window.location.href = '/';
-        }, 1000);
+            return; // Stop execution since we're redirecting
+        }
+        
+        // Refresh the page to ensure all auth-dependent elements update
+        window.location.reload();
     } catch (error) {
+        console.error('[AUTH] Logout error:', error);
         hideLoading();
-        handleError(error, 'Failed to logout');
+        handleError(error, 'Failed to log out');
     }
 }
 

@@ -85,9 +85,10 @@ const sessionConfig = {
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60000 * 60 * 24, // 24 hours
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days (increased from 24 hours)
         sameSite: 'lax',
-        httpOnly: true
+        httpOnly: true,
+        path: '/'
     }
 };
 
@@ -278,11 +279,37 @@ app.get('/auth/discord/callback', (req, res, next) => {
 });
 
 app.get('/auth/logout', (req, res) => {
-    req.logout(() => {
-        // Redirect to the referring page or home
+    console.log('[AUTH] Logout requested');
+    
+    // If user is authenticated, logout
+    if (req.isAuthenticated()) {
+        console.log('[AUTH] User was authenticated, destroying session');
+        
+        // Destroy the session
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('[AUTH] Error destroying session:', err);
+            } else {
+                console.log('[AUTH] Session successfully destroyed');
+            }
+            
+            // Clear auth cookie explicitly
+            res.clearCookie('connect.sid', {
+                path: '/',
+                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined
+            });
+            
+            // Redirect to the referring page or home
+            const returnTo = req.headers.referer || '/';
+            console.log('[AUTH] Redirecting to:', returnTo);
+            res.redirect(returnTo);
+        });
+    } else {
+        console.log('[AUTH] User was not authenticated');
+        // Redirect even if not authenticated
         const returnTo = req.headers.referer || '/';
         res.redirect(returnTo);
-    });
+    }
 });
 
 // Auth middleware for protected routes
@@ -1622,6 +1649,27 @@ app.get('/debug-redirect', (req, res) => {
         </body>
     </html>
     `);
+});
+
+// Debug session/auth status endpoint
+app.get('/debug-session', (req, res) => {
+    res.json({
+        isAuthenticated: req.isAuthenticated(),
+        sessionExists: !!req.session,
+        sessionID: req.sessionID,
+        sessionCookie: req.headers.cookie ? true : false,
+        user: req.user ? {
+            id: req.user.id,
+            username: req.user.username,
+            discord_id: req.user.discord_id
+        } : null,
+        cookies: req.headers.cookie,
+        headers: {
+            host: req.headers.host,
+            referer: req.headers.referer,
+            'user-agent': req.headers['user-agent']
+        }
+    });
 });
 
 // Error logging endpoint
