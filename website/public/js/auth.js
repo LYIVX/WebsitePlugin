@@ -2,13 +2,18 @@
 function storeCurrentPage() {
     // Don't store login or profile pages
     const currentPath = window.location.pathname;
-    if (!currentPath.includes('/login') && !currentPath.includes('/profile')) {
-        const currentPage = window.location.href;
-        localStorage.setItem('previousPage', currentPage);
-        console.log('Stored previous page:', currentPage);
-        return currentPage;
+    
+    // Skip storing certain pages
+    if (currentPath.includes('/login') || currentPath.includes('/profile')) {
+        return null;
     }
-    return null;
+    
+    // Store the current page's path (not the full URL with domain)
+    // This helps prevent cross-domain redirects
+    const pathname = window.location.pathname + window.location.search;
+    console.log('Storing current path:', pathname);
+    localStorage.setItem('previousPage', pathname);
+    return pathname;
 }
 
 // Handle login button click
@@ -42,10 +47,19 @@ function checkRedirectAfterLogin() {
     
     // If we have a return URL in the query parameters and we just logged in, use that
     if (loginSuccess && returnUrl) {
-        console.log('Redirecting to return URL from query param:', returnUrl);
+        // Convert to a relative path if it's a full URL
+        let relativePath = returnUrl;
+        try {
+            const url = new URL(returnUrl);
+            relativePath = url.pathname + url.search + url.hash;
+        } catch (e) {
+            // It's already a relative path
+        }
+        
+        console.log('Redirecting to return URL:', relativePath);
         // Add a slight delay to ensure this executes after page loads
         setTimeout(() => {
-            window.location.href = returnUrl;
+            window.location.href = relativePath;
         }, 100);
         return true;
     }
@@ -57,7 +71,7 @@ function checkRedirectAfterLogin() {
         
         // If there's a stored page and we just logged in, redirect
         if (previousPage && loginSuccess) {
-            console.log('Redirecting to previous page from localStorage:', previousPage);
+            console.log('Redirecting to previous page:', previousPage);
             localStorage.removeItem('previousPage'); // Clear it
             // Add a slight delay to ensure this executes after page loads
             setTimeout(() => {

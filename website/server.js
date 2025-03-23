@@ -196,12 +196,30 @@ passport.use(new DiscordStrategy({
 // Auth routes
 app.get('/auth/discord', (req, res, next) => {
     try {
-        // Store the origin for use in callback
-        // Make sure we don't store localhost as the return URL
-        const referer = req.headers.referer || '/';
-        req.session.returnTo = referer.includes('localhost') ? '/' : referer;
-        
+        // Get current domain
         const baseUrl = getBaseUrl(req);
+        const currentDomain = new URL(baseUrl).hostname;
+        console.log('[AUTH] Current domain:', currentDomain);
+        
+        // Store the origin for use in callback, but ensure it's for the current domain
+        const referer = req.headers.referer || '/';
+        let returnTo = referer;
+        
+        // Validate returnTo URL to prevent cross-domain redirects
+        // If referer contains a different domain than current request, use homepage
+        if (referer.includes('localhost') && !currentDomain.includes('localhost')) {
+            console.log('[AUTH] Cross-domain redirect detected (localhost → production). Using homepage.');
+            returnTo = '/';
+        } else if (!referer.includes('localhost') && currentDomain.includes('localhost')) {
+            console.log('[AUTH] Cross-domain redirect detected (production → localhost). Using homepage.');
+            returnTo = '/';
+        } else if (referer.includes('enderfall.co.uk') && !currentDomain.includes('enderfall.co.uk')) {
+            console.log('[AUTH] Cross-domain redirect detected (enderfall → other). Using homepage.');
+            returnTo = '/';
+        }
+        
+        req.session.returnTo = returnTo;
+        
         console.log('[AUTH] ====== DISCORD AUTH ATTEMPT ======');
         console.log('[AUTH] Headers:', JSON.stringify({
             host: req.headers.host,
@@ -266,9 +284,16 @@ app.get('/auth/discord/callback', (req, res, next) => {
             let returnTo = req.session.returnTo || '/profile.html';
             delete req.session.returnTo;
             
-            // Fix for localhost redirect - ensure we stay on the same domain
-            if (returnTo.includes('localhost')) {
-                console.log('[AUTH] Fixing localhost redirect to stay on current domain');
+            // Get current domain
+            const baseUrl = getBaseUrl(req);
+            const currentDomain = new URL(baseUrl).hostname;
+            
+            // Validate returnTo URL to prevent cross-domain redirects
+            if (returnTo.includes('localhost') && !currentDomain.includes('localhost')) {
+                console.log('[AUTH] Preventing redirect to localhost from production');
+                returnTo = '/profile.html';
+            } else if (returnTo.includes('enderfall.co.uk') && !currentDomain.includes('enderfall.co.uk')) {
+                console.log('[AUTH] Preventing redirect to enderfall.co.uk from localhost');
                 returnTo = '/profile.html';
             }
             
