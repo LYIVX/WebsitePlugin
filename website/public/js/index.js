@@ -338,7 +338,7 @@ function setupAvatarPreview() {
             if (linkAccountBtn) {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
-                linkAccountBtn.onclick = () => window.location.href = '/api/auth/discord';
+                linkAccountBtn.onclick = () => window.location.href = '/auth/discord';
             }
             if (linkInfo) {
                 linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';
@@ -401,7 +401,7 @@ function setupAvatarPreview() {
             if (linkAccountBtn) {
                 linkAccountBtn.style.display = 'flex';
                 linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
-                linkAccountBtn.onclick = () => window.location.href = '/api/auth/discord';
+                linkAccountBtn.onclick = () => window.location.href = '/auth/discord';
             }
             if (linkInfo) {
                 linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';

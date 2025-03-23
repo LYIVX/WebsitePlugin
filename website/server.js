@@ -86,10 +86,17 @@ passport.deserializeUser((user, done) => done(null, user));
 
 const scopes = ['identify', 'email', 'guilds.join'];
 
+// Get the appropriate redirect URI based on environment
+const getRedirectUri = () => {
+    return process.env.NODE_ENV === 'production' 
+        ? process.env.DISCORD_REDIRECT_URI_PROD 
+        : process.env.DISCORD_REDIRECT_URI;
+};
+
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
-    callbackURL: process.env.DISCORD_REDIRECT_URI,
+    callbackURL: getRedirectUri(),
     scope: scopes
 }, async (accessToken, refreshToken, profile, done) => {
     try {
