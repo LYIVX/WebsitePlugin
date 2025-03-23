@@ -1,5 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { createClient } = require('@supabase/supabase-js');
+
+// Create Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Define local auth middleware instead of importing it
 const requireAuth = (req, res, next) => {
@@ -53,150 +59,147 @@ const initializeRouter = (supabase) => {
     });
 
     // Edit a comment
-    router.put('/:id', requireAuth, async (req, res) => {
+    router.put('/:id', async (req, res) => {
         try {
-            const commentId = req.params.id;
+            // Check authentication
+            if (!req.isAuthenticated()) {
+                return res.status(401).json({ error: 'Authentication required' });
+            }
+            
+            const { id } = req.params;
             const { content, forum_id } = req.body;
             
-            // Validate required fields
-            if (!content || content.trim() === '') {
-                return res.status(400).json({ error: 'Comment content cannot be empty' });
+            // Validation
+            if (!content) {
+                return res.status(400).json({ error: 'Comment content is required' });
             }
             
-            if (!forum_id) {
-                return res.status(400).json({ error: 'Forum ID is required' });
-            }
-
-            console.log('Edit comment request:', {
-                commentId,
-                forumId: forum_id,
-                content: content ? content.substring(0, 30) + '...' : 'empty'
-            });
-            
-            // Get the forum_user_id for the authenticated user
-            const { data: forumUser, error: forumUserError } = await supabase
-                .from('forum_users')
-                .select('id')
-                .eq('username', req.user.username)
-                .maybeSingle();
-                
-            if (forumUserError || !forumUser) {
-                console.error('Error finding forum user:', forumUserError);
-                return res.status(404).json({ error: 'Forum user not found' });
-            }
-            
-            // Check if comment exists and belongs to the specified forum
-            const { data: comment, error: commentError } = await supabase
-                .from('forum_comments')
-                .select('user_id, forum_id')
-                .eq('id', commentId)
+            // Get the current comment to check ownership
+            const { data: comment, error: getError } = await supabase
+                .from('comments')
+                .select('*')
+                .eq('id', id)
                 .single();
             
-            if (commentError) {
-                console.error('Error fetching comment for editing:', commentError);
+            if (getError) {
+                throw getError;
+            }
+            
+            if (!comment) {
                 return res.status(404).json({ error: 'Comment not found' });
             }
             
-            // Verify the comment belongs to the specified forum
-            if (comment.forum_id !== forum_id) {
-                return res.status(400).json({ error: 'Comment does not belong to the specified forum' });
+            // Get user ID from forum_users
+            const { data: userData, error: userError } = await supabase
+                .from('forum_users')
+                .select('id')
+                .eq('username', req.user.username)
+                .eq('discord_id', req.user.discord_id)
+                .maybeSingle();
+            
+            if (userError) {
+                throw userError;
             }
             
-            // Verify ownership
-            if (comment.user_id !== forumUser.id) {
-                return res.status(403).json({ error: 'You do not have permission to edit this comment' });
+            // Check ownership or admin status
+            const isAdmin = req.user.roles?.includes('admin');
+            const isOwner = userData && userData.id === comment.user_id;
+            
+            if (!isAdmin && !isOwner) {
+                return res.status(403).json({ error: 'Not authorized to update this comment' });
             }
-
+            
             // Update the comment
             const { data: updatedComment, error: updateError } = await supabase
-                .from('forum_comments')
+                .from('comments')
                 .update({
-                    content: content.trim(),
-                    updated_at: new Date()
+                    content,
+                    updated_at: new Date().toISOString()
                 })
-                .eq('id', commentId)
-                .select();
+                .eq('id', id)
+                .select()
+                .single();
             
             if (updateError) {
-                console.error('Error updating comment:', updateError);
-                return res.status(500).json({ error: 'Failed to update comment' });
+                throw updateError;
             }
             
-            if (!updatedComment || updatedComment.length === 0) {
-                return res.status(404).json({ error: 'Comment not found or not updated' });
-            }
-            
-            console.log('Comment updated successfully:', updatedComment[0]);
-            res.json({
-                success: true,
-                comment: updatedComment[0]
-            });
+            res.json(updatedComment);
         } catch (error) {
-            console.error('Error processing edit comment request:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            console.error('Error updating comment:', error);
+            res.status(500).json({ error: 'Failed to update comment' });
         }
     });
 
     // Delete a comment
-    router.delete('/:id', requireAuth, async (req, res) => {
+    router.delete('/:id', async (req, res) => {
         try {
-            const commentId = req.params.id;
-            const { forum_id } = req.body;
-            
-            // Validate forum_id
-            if (!forum_id) {
-                return res.status(400).json({ error: 'Forum ID is required' });
+            // Check authentication
+            if (!req.isAuthenticated()) {
+                return res.status(401).json({ error: 'Authentication required' });
             }
             
-            // Get the forum_user_id for the authenticated user - use username just like in forum deletion
-            const { data: forumUser, error: forumUserError } = await supabase
-                .from('forum_users')
-                .select('id')
-                .eq('username', req.user.username)
-                .maybeSingle();
-                
-            if (forumUserError || !forumUser) {
-                console.error('Error finding forum user:', forumUserError);
-                return res.status(404).json({ error: 'Forum user not found' });
-            }
+            const { id } = req.params;
             
-            // Check if comment exists and belongs to the specified forum
-            const { data: comment, error: commentError } = await supabase
-                .from('forum_comments')
-                .select('user_id, forum_id')
-                .eq('id', commentId)
+            // Get the current comment to check ownership
+            const { data: comment, error: getError } = await supabase
+                .from('comments')
+                .select('*')
+                .eq('id', id)
                 .single();
             
-            if (commentError) {
-                console.error('Error fetching comment for deletion:', commentError);
+            if (getError) {
+                throw getError;
+            }
+            
+            if (!comment) {
                 return res.status(404).json({ error: 'Comment not found' });
             }
             
-            // Verify the comment belongs to the specified forum
-            if (comment.forum_id !== forum_id) {
-                return res.status(400).json({ error: 'Comment does not belong to the specified forum' });
+            // Get user ID from forum_users
+            const { data: userData, error: userError } = await supabase
+                .from('forum_users')
+                .select('id')
+                .eq('username', req.user.username)
+                .eq('discord_id', req.user.discord_id)
+                .maybeSingle();
+            
+            if (userError) {
+                throw userError;
             }
             
-            // Verify ownership
-            if (comment.user_id !== forumUser.id) {
+            // Check ownership or admin status
+            const isAdmin = req.user.roles?.includes('admin');
+            const isOwner = userData && userData.id === comment.user_id;
+            
+            if (!isAdmin && !isOwner) {
                 return res.status(403).json({ error: 'Not authorized to delete this comment' });
+            }
+            
+            // Delete all child comments first
+            const { error: childDeleteError } = await supabase
+                .from('comments')
+                .delete()
+                .eq('parent_id', id);
+            
+            if (childDeleteError) {
+                throw childDeleteError;
             }
             
             // Delete the comment
             const { error: deleteError } = await supabase
-                .from('forum_comments')
+                .from('comments')
                 .delete()
-                .eq('id', commentId);
+                .eq('id', id);
             
             if (deleteError) {
-                console.error('Error deleting comment:', deleteError);
-                return res.status(500).json({ error: 'Failed to delete comment' });
+                throw deleteError;
             }
             
-            res.json({ message: 'Comment deleted successfully' });
+            res.json({ success: true });
         } catch (error) {
-            console.error('Error processing delete comment request:', error);
-            res.status(500).json({ error: 'Internal server error' });
+            console.error('Error deleting comment:', error);
+            res.status(500).json({ error: 'Failed to delete comment' });
         }
     });
 

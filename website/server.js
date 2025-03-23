@@ -10,7 +10,7 @@ const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 require('dotenv').config();
 
-// Routers
+// Import routes
 const userRouter = require('./routes/user');
 const forumRouter = require('./routes/forums');
 const migrationRouter = require('./routes/migrations');
@@ -119,8 +119,11 @@ app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Mount routers
-app.use('/api/comments', commentsRouter(supabase));
+// Apply routes
+app.use('/api/user', userRouter);
+app.use('/api/forums', forumRouter);
+app.use('/api/migrations', migrationRouter);
+app.use('/api/comments', commentsRouter);
 
 // Passport configuration
 passport.serializeUser((user, done) => done(null, user));
