@@ -1,13 +1,40 @@
-require('dotenv').config();
+// server.js for Enderfall website
 const express = require('express');
+const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
-const { createClient } = require('@supabase/supabase-js');
-const cors = require('cors');
-const path = require('path');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+require('dotenv').config();
+
+// Routers
+const userRouter = require('./routes/user');
+const forumRouter = require('./routes/forums');
+const migrationRouter = require('./routes/migrations');
 const commentsRouter = require('./routes/comments');
 const fs = require('fs');
+
+const app = express();
+
+// Middleware for www to non-www redirect
+app.use((req, res, next) => {
+  const host = req.hostname;
+  // Check if it's the www subdomain
+  if (host.startsWith('www.')) {
+    const newHost = host.slice(4); // remove 'www.'
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    return res.redirect(301, `${protocol}://${newHost}${req.originalUrl}`);
+  }
+  next();
+});
+
+// Console log the environment for debugging
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+
+// Set cookie secure flag based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieSecure = isProduction;
 
 // Helper function to determine environment
 function getBaseUrl(req) {
@@ -39,7 +66,6 @@ function getBaseUrl(req) {
     return 'http://localhost:3000';
 }
 
-const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize Supabase client
