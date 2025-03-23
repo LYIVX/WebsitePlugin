@@ -213,7 +213,9 @@ app.get('/auth/discord', (req, res, next) => {
             clientID: process.env.DISCORD_CLIENT_ID,
             clientSecret: process.env.DISCORD_CLIENT_SECRET,
             callbackURL: callbackUrl,
-            scope: scopes
+            scope: scopes,
+            // Set state parameter for added security (prevents CSRF)
+            state: require('crypto').randomBytes(16).toString('hex')
         };
         
         // Use custom passport authenticate with our configuration
