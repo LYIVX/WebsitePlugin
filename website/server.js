@@ -32,13 +32,9 @@ function getBaseUrl(req) {
     if (process.env.NODE_ENV === 'production') {
         // Check if we have a custom host header
         if (req && req.headers && req.headers.host) {
-            // Handle both www and non-www versions of the domain
+            // Always use the non-www version for consistency
             if (req.headers.host.includes('enderfall.co.uk')) {
-                if (req.headers.host.startsWith('www.')) {
-                    return 'https://www.enderfall.co.uk';
-                } else {
-                    return 'https://enderfall.co.uk';
-                }
+                return 'https://enderfall.co.uk';
             }
         }
         
