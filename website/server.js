@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 const commentsRouter = require('./routes/comments');
 const fs = require('fs');
@@ -102,15 +104,19 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Set-Cookie']
 }));
+
+// Add cookie parser before session middleware
+app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.json());
 app.use(express.static('public'));
 
 // Setup session middleware
 const sessionConfig = {
     secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     proxy: true,
+    name: 'enderfall.sid',
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
@@ -127,7 +133,8 @@ if (process.env.NODE_ENV === 'production') {
     console.log('[SESSION] Using production settings:', {
         domain: sessionConfig.cookie.domain,
         secure: sessionConfig.cookie.secure,
-        sameSite: sessionConfig.cookie.sameSite
+        sameSite: sessionConfig.cookie.sameSite,
+        maxAge: sessionConfig.cookie.maxAge
     });
 }
 
@@ -138,12 +145,38 @@ app.use(session(sessionConfig));
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Add session check middleware
+app.use((req, res, next) => {
+    // Check if the session exists but user is not set
+    if (req.session && !req.session.passport && req.cookies['enderfall.sid']) {
+        console.log('[SESSION] Found session cookie but no user:', {
+            sessionID: req.sessionID,
+            hasCookie: !!req.cookies['enderfall.sid']
+        });
+    }
+    next();
+});
+
 // Mount routers
 app.use('/api/comments', commentsRouter(supabase));
 
 // Passport configuration
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+passport.serializeUser((user, done) => {
+    console.log('[PASSPORT] Serializing user:', user.username);
+    done(null, {
+        id: user.id,
+        discord_id: user.discord_id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        discriminator: user.discriminator
+    });
+});
+
+passport.deserializeUser((user, done) => {
+    console.log('[PASSPORT] Deserializing user:', user.username);
+    done(null, user);
+});
 
 const scopes = ['identify', 'email', 'guilds.join'];
 
@@ -327,22 +360,42 @@ app.get('/auth/discord/callback', (req, res, next) => {
                 return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
             
-            // Save session explicitly
-            req.session.save((saveErr) => {
-                if (saveErr) {
-                    console.error('[AUTH] Session save error:', saveErr);
-                    return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
+            // Regenerate session to prevent session fixation
+            req.session.regenerate((regenerateErr) => {
+                if (regenerateErr) {
+                    console.error('[AUTH] Session regeneration error:', regenerateErr);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Session error'));
                 }
                 
-                console.log('[AUTH] Authentication successful for user:', user.username);
+                // Set user data in new session
+                req.session.user = user;
+                req.session.isAuthenticated = true;
                 
-                // Get return URL from session
-                const returnTo = req.session.returnTo || '/';
-                delete req.session.returnTo;
-                
-                // Redirect to the return URL
-                console.log('[AUTH] Redirecting to:', returnTo);
-                res.redirect(returnTo);
+                // Save session explicitly
+                req.session.save((saveErr) => {
+                    if (saveErr) {
+                        console.error('[AUTH] Session save error:', saveErr);
+                        return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
+                    }
+                    
+                    console.log('[AUTH] Authentication successful for user:', user.username);
+                    console.log('[AUTH] Session ID:', req.sessionID);
+                    console.log('[AUTH] Cookie settings:', {
+                        domain: req.session.cookie.domain,
+                        path: req.session.cookie.path,
+                        secure: req.session.cookie.secure,
+                        httpOnly: req.session.cookie.httpOnly,
+                        sameSite: req.session.cookie.sameSite
+                    });
+                    
+                    // Get return URL from session
+                    const returnTo = req.session.returnTo || '/';
+                    delete req.session.returnTo;
+                    
+                    // Redirect to the return URL
+                    console.log('[AUTH] Redirecting to:', returnTo);
+                    res.redirect(returnTo);
+                });
             });
         });
     })(req, res, next);
@@ -1897,6 +1950,32 @@ app.use((req, res, next) => {
         });
     }
     next();
+});
+
+// Session check endpoint
+app.get('/api/session-check', (req, res) => {
+    const sessionInfo = {
+        hasSession: !!req.session,
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user,
+        sessionCookie: req.headers.cookie,
+        sessionData: req.session,
+        headers: {
+            host: req.headers.host,
+            'x-forwarded-proto': req.headers['x-forwarded-proto'],
+            'x-forwarded-for': req.headers['x-forwarded-for']
+        }
+    };
+    
+    console.log('[SESSION] Check requested:', {
+        hasSession: sessionInfo.hasSession,
+        isAuthenticated: sessionInfo.isAuthenticated,
+        sessionID: sessionInfo.sessionID,
+        hasCookie: !!sessionInfo.sessionCookie
+    });
+    
+    res.json(sessionInfo);
 });
 
 // Start server
