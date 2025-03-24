@@ -75,19 +75,22 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 
 // Middleware
 const allowedOrigins = [
-    'http://localhost:3000', 
-    'https://enderfall.co.uk', 
-    'https://www.enderfall.co.uk',
-    'http://enderfall.co.uk',  // Also allow HTTP version
-    'http://www.enderfall.co.uk'
+    'http://localhost:3000',
+    'https://enderfall.co.uk',
+    'https://www.enderfall.co.uk'
 ];
 
+// CORS configuration
 app.use(cors({
     origin: function(origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+        if (!origin) {
+            console.log('[CORS] Allowing request with no origin');
+            return callback(null, true);
+        }
         
         if (allowedOrigins.indexOf(origin) !== -1) {
+            console.log('[CORS] Allowing origin:', origin);
             callback(null, true);
         } else {
             console.log('[CORS] Blocked request from origin:', origin);
@@ -95,8 +98,9 @@ app.use(cors({
         }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie']
 }));
 app.use(express.json());
 app.use(express.static('public'));
@@ -106,8 +110,9 @@ const sessionConfig = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    proxy: true, // Trust the reverse proxy
     cookie: {
-        secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
+        secure: process.env.NODE_ENV === 'production', // Must be true in production
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         sameSite: 'lax',
         httpOnly: true,
@@ -115,11 +120,17 @@ const sessionConfig = {
     }
 };
 
-// In production, set the domain to work with both www and non-www
+// In production, set the domain and other production-specific settings
 if (process.env.NODE_ENV === 'production') {
     // Use a leading dot for domain-wide cookies that work across all subdomains
     sessionConfig.cookie.domain = '.enderfall.co.uk';
-    console.log('[SESSION] Using production cookie domain with leading dot:', sessionConfig.cookie.domain);
+    // Ensure secure is true in production
+    sessionConfig.cookie.secure = true;
+    console.log('[SESSION] Using production settings:', {
+        domain: sessionConfig.cookie.domain,
+        secure: sessionConfig.cookie.secure,
+        sameSite: sessionConfig.cookie.sameSite
+    });
 }
 
 app.use(session(sessionConfig));
@@ -297,10 +308,9 @@ app.get('/auth/discord/callback', (req, res, next) => {
     next();
 }, (req, res, next) => {
     passport.authenticate('discord', (err, user, info) => {
-        // Rest of your authentication handler code
         if (err) {
-            console.error('[AUTH] Error during authentication:', err);
-            return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+            console.error('[AUTH] Login error:', err);
+            return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
         }
         
         if (!user) {
@@ -314,25 +324,33 @@ app.get('/auth/discord/callback', (req, res, next) => {
                 return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
             
-            // Redirect to the original site or default to profile
-            let returnTo = req.session.returnTo || '/profile.html';
-            delete req.session.returnTo;
-            
-            // Get current domain
-            const baseUrl = getBaseUrl(req);
-            const currentDomain = new URL(baseUrl).hostname;
-            
-            // Validate returnTo URL to prevent cross-domain redirects
-            if (returnTo.includes('localhost') && !currentDomain.includes('localhost')) {
-                console.log('[AUTH] Preventing redirect to localhost from production');
-                returnTo = '/profile.html';
-            } else if (returnTo.includes('enderfall.co.uk') && !currentDomain.includes('enderfall.co.uk')) {
-                console.log('[AUTH] Preventing redirect to enderfall.co.uk from localhost');
-                returnTo = '/profile.html';
-            }
-            
-            console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
-            return res.redirect(returnTo);
+            // Save session explicitly
+            req.session.save((err) => {
+                if (err) {
+                    console.error('[AUTH] Session save error:', err);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
+                }
+                
+                // Redirect to the original site or default to profile
+                let returnTo = req.session.returnTo || '/profile.html';
+                delete req.session.returnTo;
+                
+                // Get current domain
+                const baseUrl = getBaseUrl(req);
+                const currentDomain = new URL(baseUrl).hostname;
+                
+                // Validate returnTo URL to prevent cross-domain redirects
+                if (returnTo.includes('localhost') && !currentDomain.includes('localhost')) {
+                    console.log('[AUTH] Preventing redirect to localhost from production');
+                    returnTo = '/profile.html';
+                } else if (returnTo.includes('enderfall.co.uk') && !currentDomain.includes('enderfall.co.uk')) {
+                    console.log('[AUTH] Preventing redirect to enderfall.co.uk from localhost');
+                    returnTo = '/profile.html';
+                }
+                
+                console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
+                return res.redirect(returnTo);
+            });
         });
     })(req, res, next);
 });
@@ -1869,6 +1887,21 @@ Headers:
         </body>
     </html>
     `);
+});
+
+// Add session debugging middleware
+app.use((req, res, next) => {
+    // Log session and authentication status for each request
+    console.log(`[DEBUG] ${req.method} ${req.path}`, {
+        sessionID: req.sessionID,
+        hasSession: !!req.session,
+        isAuthenticated: req.isAuthenticated(),
+        hasCookie: !!req.headers.cookie,
+        secure: req.secure,
+        protocol: req.protocol,
+        'x-forwarded-proto': req.headers['x-forwarded-proto']
+    });
+    next();
 });
 
 // Start server
