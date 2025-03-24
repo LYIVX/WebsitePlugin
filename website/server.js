@@ -104,23 +104,10 @@ app.use(cors({
     exposedHeaders: ['Set-Cookie']
 }));
 
-// Add cookie parser before session middleware
+// Add cookie parser and basic middleware
 app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.json());
 app.use(express.static('public'));
-
-// Add session debugging middleware
-app.use((req, res, next) => {
-    // Log all cookie and session information for debugging
-    console.log('[SESSION] Request details:', {
-        path: req.path,
-        cookies: req.cookies ? Object.keys(req.cookies) : [],
-        hasCookie: !!req.cookies[SESSION_COOKIE_NAME],
-        sessionID: req.sessionID,
-        hasSession: !!req.session
-    });
-    next();
-});
 
 // Setup session middleware
 const SESSION_COOKIE_NAME = 'enderfall.sid';
@@ -131,6 +118,7 @@ const sessionConfig = {
     saveUninitialized: false,
     proxy: true,
     name: SESSION_COOKIE_NAME,
+    store: undefined, // Use default MemoryStore
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
@@ -158,6 +146,21 @@ app.use(session(sessionConfig));
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Add session debugging middleware AFTER session initialization
+app.use((req, res, next) => {
+    // Log all cookie and session information for debugging
+    console.log('[SESSION] Request details:', {
+        path: req.path,
+        cookies: req.cookies ? Object.keys(req.cookies) : [],
+        hasCookie: !!req.cookies[SESSION_COOKIE_NAME],
+        sessionID: req.sessionID,
+        hasSession: !!req.session,
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user ? { id: req.user.id, username: req.user.username } : null
+    });
+    next();
+});
 
 // Add session check middleware
 app.use((req, res, next) => {
@@ -341,7 +344,8 @@ app.get('/auth/discord/callback', (req, res, next) => {
     console.log('[AUTH] Headers:', {
         host: req.headers.host,
         origin: req.headers.origin,
-        referer: req.headers.referer
+        referer: req.headers.referer,
+        cookie: req.headers.cookie ? 'present' : 'none'
     });
     
     // Handle Discord errors
@@ -368,34 +372,28 @@ app.get('/auth/discord/callback', (req, res, next) => {
             return res.redirect('/?auth_error=' + encodeURIComponent('No user data received'));
         }
 
-        // Regenerate session to prevent session fixation
-        req.session.regenerate((regenerateErr) => {
-            if (regenerateErr) {
-                console.error('[AUTH] Session regeneration error:', regenerateErr);
-                return res.redirect('/?auth_error=' + encodeURIComponent('Session error'));
+        // Log in the user
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.error('[AUTH] Login error:', loginErr);
+                return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
 
-            // Log in the user
-            req.logIn(user, (loginErr) => {
-                if (loginErr) {
-                    console.error('[AUTH] Login error:', loginErr);
-                    return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
+            // Set user data in session
+            req.session.user = user;
+            req.session.isAuthenticated = true;
+
+            // Save session explicitly
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    console.error('[AUTH] Session save error:', saveErr);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
                 }
-
-                // Set user data in session
-                req.session.user = user;
-                req.session.isAuthenticated = true;
-
-                // Save session explicitly
-                req.session.save((saveErr) => {
-                    if (saveErr) {
-                        console.error('[AUTH] Session save error:', saveErr);
-                        return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
-                    }
-                    
-                    console.log('[AUTH] Authentication successful for user:', user.username);
-                    console.log('[AUTH] Session ID:', req.sessionID);
-                    console.log('[AUTH] Cookie settings:', {
+                
+                console.log('[AUTH] Authentication successful for user:', user.username);
+                console.log('[AUTH] Session details:', {
+                    id: req.sessionID,
+                    cookie: {
                         name: SESSION_COOKIE_NAME,
                         domain: req.session.cookie.domain,
                         path: req.session.cookie.path,
@@ -403,16 +401,27 @@ app.get('/auth/discord/callback', (req, res, next) => {
                         httpOnly: req.session.cookie.httpOnly,
                         sameSite: req.session.cookie.sameSite,
                         maxAge: req.session.cookie.maxAge
-                    });
-                    
-                    // Get return URL from session
-                    const returnTo = req.session.returnTo || '/';
-                    delete req.session.returnTo;
-                    
-                    // Redirect to the return URL
-                    console.log('[AUTH] Redirecting to:', returnTo);
-                    res.redirect(returnTo);
+                    },
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                        discord_id: user.discord_id
+                    }
                 });
+                
+                // Get return URL from session
+                const returnTo = req.session.returnTo || '/';
+                delete req.session.returnTo;
+                
+                // Set a flash message for the frontend
+                req.session.flashMessage = {
+                    type: 'success',
+                    message: 'Successfully logged in!'
+                };
+                
+                // Redirect to the return URL
+                console.log('[AUTH] Redirecting to:', returnTo);
+                res.redirect(returnTo);
             });
         });
     })(req, res, next);
