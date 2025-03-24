@@ -112,8 +112,8 @@ app.use(express.static('public'));
 // Setup session middleware
 const sessionConfig = {
     secret: process.env.SESSION_SECRET,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     proxy: true,
     name: 'enderfall.sid',
     cookie: {
@@ -127,7 +127,7 @@ const sessionConfig = {
 
 // In production, set the domain and other production-specific settings
 if (process.env.NODE_ENV === 'production') {
-    sessionConfig.cookie.domain = '.enderfall.co.uk';
+    sessionConfig.cookie.domain = 'enderfall.co.uk'; // Remove the leading dot
     sessionConfig.cookie.secure = true;
     console.log('[SESSION] Using production settings:', {
         domain: sessionConfig.cookie.domain,
@@ -351,50 +351,43 @@ app.get('/auth/discord/callback', (req, res, next) => {
             console.error('[AUTH] No user returned from Discord');
             return res.redirect('/?auth_error=' + encodeURIComponent('No user data received'));
         }
-        
+
         // Log in the user
         req.logIn(user, (loginErr) => {
             if (loginErr) {
                 console.error('[AUTH] Login error:', loginErr);
                 return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
-            
-            // Regenerate session to prevent session fixation
-            req.session.regenerate((regenerateErr) => {
-                if (regenerateErr) {
-                    console.error('[AUTH] Session regeneration error:', regenerateErr);
-                    return res.redirect('/?auth_error=' + encodeURIComponent('Session error'));
+
+            // Set user data in session
+            req.session.user = user;
+            req.session.isAuthenticated = true;
+
+            // Save session explicitly
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    console.error('[AUTH] Session save error:', saveErr);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
                 }
                 
-                // Set user data in new session
-                req.session.user = user;
-                req.session.isAuthenticated = true;
-                
-                // Save session explicitly
-                req.session.save((saveErr) => {
-                    if (saveErr) {
-                        console.error('[AUTH] Session save error:', saveErr);
-                        return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
-                    }
-                    
-                    console.log('[AUTH] Authentication successful for user:', user.username);
-                    console.log('[AUTH] Session ID:', req.sessionID);
-                    console.log('[AUTH] Cookie settings:', {
-                        domain: req.session.cookie.domain,
-                        path: req.session.cookie.path,
-                        secure: req.session.cookie.secure,
-                        httpOnly: req.session.cookie.httpOnly,
-                        sameSite: req.session.cookie.sameSite
-                    });
-                    
-                    // Get return URL from session
-                    const returnTo = req.session.returnTo || '/';
-                    delete req.session.returnTo;
-                    
-                    // Redirect to the return URL
-                    console.log('[AUTH] Redirecting to:', returnTo);
-                    res.redirect(returnTo);
+                console.log('[AUTH] Authentication successful for user:', user.username);
+                console.log('[AUTH] Session ID:', req.sessionID);
+                console.log('[AUTH] Cookie settings:', {
+                    domain: req.session.cookie.domain,
+                    path: req.session.cookie.path,
+                    secure: req.session.cookie.secure,
+                    httpOnly: req.session.cookie.httpOnly,
+                    sameSite: req.session.cookie.sameSite,
+                    maxAge: req.session.cookie.maxAge
                 });
+                
+                // Get return URL from session
+                const returnTo = req.session.returnTo || '/';
+                delete req.session.returnTo;
+                
+                // Redirect to the return URL
+                console.log('[AUTH] Redirecting to:', returnTo);
+                res.redirect(returnTo);
             });
         });
     })(req, res, next);
@@ -418,7 +411,7 @@ app.get('/auth/logout', (req, res) => {
             // Clear auth cookie explicitly
             res.clearCookie('connect.sid', {
                 path: '/',
-                domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
+                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined
             });
             
             // Redirect to the referring page or home
@@ -1854,7 +1847,7 @@ app.get('/test-cookie', (req, res) => {
         maxAge: 1000 * 60 * 60 * 24, // 1 day
         httpOnly: false, // Make it readable by client-side JS
         secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
-        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
+        domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined,
         path: '/',
         sameSite: 'lax'
     });
