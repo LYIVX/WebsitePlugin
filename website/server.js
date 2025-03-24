@@ -110,22 +110,19 @@ const sessionConfig = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    proxy: true, // Trust the reverse proxy
+    proxy: true,
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Must be true in production
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
         sameSite: 'lax',
         httpOnly: true,
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined
+        path: '/'
     }
 };
 
 // In production, set the domain and other production-specific settings
 if (process.env.NODE_ENV === 'production') {
-    // Use a leading dot for domain-wide cookies that work across all subdomains
     sessionConfig.cookie.domain = '.enderfall.co.uk';
-    // Ensure secure is true in production
     sessionConfig.cookie.secure = true;
     console.log('[SESSION] Using production settings:', {
         domain: sessionConfig.cookie.domain,
@@ -134,7 +131,10 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// Initialize session middleware
 app.use(session(sessionConfig));
+
+// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -286,71 +286,63 @@ app.get('/auth/discord', (req, res, next) => {
     }
 });
 
-// Raw callback URL handler for testing
+// Discord callback handler
 app.get('/auth/discord/callback', (req, res, next) => {
-    // Log the raw request details to see exactly what Discord is sending
     console.log('[AUTH] ====== DISCORD CALLBACK RECEIVED ======');
-    console.log('[AUTH] Query params:', JSON.stringify(req.query));
-    console.log('[AUTH] Headers:', JSON.stringify({
+    console.log('[AUTH] Query params:', req.query);
+    console.log('[AUTH] Headers:', {
         host: req.headers.host,
-        referer: req.headers.referer,
-        'user-agent': req.headers['user-agent']
-    }));
-    console.log('[AUTH] ======================================');
+        origin: req.headers.origin,
+        referer: req.headers.referer
+    });
     
-    // If there's an error in the query parameters, handle it
+    // Handle Discord errors
     if (req.query.error) {
-        console.error('[AUTH] Error from Discord callback:', req.query.error);
-        console.error('[AUTH] Error description:', req.query.error_description);
-        return res.redirect('/?auth_error=' + encodeURIComponent(`Discord error: ${req.query.error} - ${req.query.error_description || ''}`));
+        console.error('[AUTH] Discord error:', {
+            error: req.query.error,
+            description: req.query.error_description
+        });
+        return res.redirect('/?auth_error=' + encodeURIComponent(req.query.error_description || 'Authentication failed'));
     }
     
-    // Continue with normal authentication flow
-    next();
-}, (req, res, next) => {
+    // Authenticate with custom error handling
     passport.authenticate('discord', (err, user, info) => {
         if (err) {
-            console.error('[AUTH] Login error:', err);
-            return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
+            console.error('[AUTH] Authentication error:', err);
+            if (err.code === 'invalid_client') {
+                console.error('[AUTH] Invalid client credentials. Please check DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET');
+            }
+            return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed: ' + (err.message || 'Unknown error')));
         }
         
         if (!user) {
-            console.error('[AUTH] Authentication failed, no user returned');
-            return res.redirect('/?auth_error=' + encodeURIComponent('Authentication failed'));
+            console.error('[AUTH] No user returned from Discord');
+            return res.redirect('/?auth_error=' + encodeURIComponent('No user data received'));
         }
         
-        req.logIn(user, (err) => {
-            if (err) {
-                console.error('[AUTH] Login error:', err);
+        // Log in the user
+        req.logIn(user, (loginErr) => {
+            if (loginErr) {
+                console.error('[AUTH] Login error:', loginErr);
                 return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
             }
             
             // Save session explicitly
-            req.session.save((err) => {
-                if (err) {
-                    console.error('[AUTH] Session save error:', err);
+            req.session.save((saveErr) => {
+                if (saveErr) {
+                    console.error('[AUTH] Session save error:', saveErr);
                     return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
                 }
                 
-                // Redirect to the original site or default to profile
-                let returnTo = req.session.returnTo || '/profile.html';
+                console.log('[AUTH] Authentication successful for user:', user.username);
+                
+                // Get return URL from session
+                const returnTo = req.session.returnTo || '/';
                 delete req.session.returnTo;
                 
-                // Get current domain
-                const baseUrl = getBaseUrl(req);
-                const currentDomain = new URL(baseUrl).hostname;
-                
-                // Validate returnTo URL to prevent cross-domain redirects
-                if (returnTo.includes('localhost') && !currentDomain.includes('localhost')) {
-                    console.log('[AUTH] Preventing redirect to localhost from production');
-                    returnTo = '/profile.html';
-                } else if (returnTo.includes('enderfall.co.uk') && !currentDomain.includes('enderfall.co.uk')) {
-                    console.log('[AUTH] Preventing redirect to enderfall.co.uk from localhost');
-                    returnTo = '/profile.html';
-                }
-                
-                console.log('[AUTH] Authentication successful, redirecting to:', returnTo);
-                return res.redirect(returnTo);
+                // Redirect to the return URL
+                console.log('[AUTH] Redirecting to:', returnTo);
+                res.redirect(returnTo);
             });
         });
     })(req, res, next);
@@ -1892,16 +1884,18 @@ Headers:
 
 // Add session debugging middleware
 app.use((req, res, next) => {
-    // Log session and authentication status for each request
-    console.log(`[DEBUG] ${req.method} ${req.path}`, {
-        sessionID: req.sessionID,
-        hasSession: !!req.session,
-        isAuthenticated: req.isAuthenticated(),
-        hasCookie: !!req.headers.cookie,
-        secure: req.secure,
-        protocol: req.protocol,
-        'x-forwarded-proto': req.headers['x-forwarded-proto']
-    });
+    const requestPath = req.path;
+    // Only log auth-related requests
+    if (requestPath.includes('/auth/') || requestPath.includes('/api/user')) {
+        console.log('[DEBUG] Request:', {
+            path: requestPath,
+            method: req.method,
+            isAuthenticated: req.isAuthenticated(),
+            sessionID: req.sessionID,
+            hasSession: !!req.session,
+            cookies: req.headers.cookie ? 'present' : 'none'
+        });
+    }
     next();
 });
 
