@@ -109,13 +109,28 @@ app.use(cookieParser(process.env.SESSION_SECRET));
 app.use(express.json());
 app.use(express.static('public'));
 
+// Add session debugging middleware
+app.use((req, res, next) => {
+    // Log all cookie and session information for debugging
+    console.log('[SESSION] Request details:', {
+        path: req.path,
+        cookies: req.cookies ? Object.keys(req.cookies) : [],
+        hasCookie: !!req.cookies[SESSION_COOKIE_NAME],
+        sessionID: req.sessionID,
+        hasSession: !!req.session
+    });
+    next();
+});
+
 // Setup session middleware
+const SESSION_COOKIE_NAME = 'enderfall.sid';
+
 const sessionConfig = {
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     proxy: true,
-    name: 'enderfall.sid',
+    name: SESSION_COOKIE_NAME,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
@@ -127,7 +142,7 @@ const sessionConfig = {
 
 // In production, set the domain and other production-specific settings
 if (process.env.NODE_ENV === 'production') {
-    sessionConfig.cookie.domain = 'enderfall.co.uk'; // Remove the leading dot
+    sessionConfig.cookie.domain = 'enderfall.co.uk';
     sessionConfig.cookie.secure = true;
     console.log('[SESSION] Using production settings:', {
         domain: sessionConfig.cookie.domain,
@@ -147,10 +162,11 @@ app.use(passport.session());
 // Add session check middleware
 app.use((req, res, next) => {
     // Check if the session exists but user is not set
-    if (req.session && !req.session.passport && req.cookies['enderfall.sid']) {
+    if (req.session && !req.session.passport && req.cookies[SESSION_COOKIE_NAME]) {
         console.log('[SESSION] Found session cookie but no user:', {
             sessionID: req.sessionID,
-            hasCookie: !!req.cookies['enderfall.sid']
+            hasCookie: !!req.cookies[SESSION_COOKIE_NAME],
+            cookieName: SESSION_COOKIE_NAME
         });
     }
     next();
@@ -352,42 +368,51 @@ app.get('/auth/discord/callback', (req, res, next) => {
             return res.redirect('/?auth_error=' + encodeURIComponent('No user data received'));
         }
 
-        // Log in the user
-        req.logIn(user, (loginErr) => {
-            if (loginErr) {
-                console.error('[AUTH] Login error:', loginErr);
-                return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
+        // Regenerate session to prevent session fixation
+        req.session.regenerate((regenerateErr) => {
+            if (regenerateErr) {
+                console.error('[AUTH] Session regeneration error:', regenerateErr);
+                return res.redirect('/?auth_error=' + encodeURIComponent('Session error'));
             }
 
-            // Set user data in session
-            req.session.user = user;
-            req.session.isAuthenticated = true;
-
-            // Save session explicitly
-            req.session.save((saveErr) => {
-                if (saveErr) {
-                    console.error('[AUTH] Session save error:', saveErr);
-                    return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
+            // Log in the user
+            req.logIn(user, (loginErr) => {
+                if (loginErr) {
+                    console.error('[AUTH] Login error:', loginErr);
+                    return res.redirect('/?auth_error=' + encodeURIComponent('Login failed'));
                 }
-                
-                console.log('[AUTH] Authentication successful for user:', user.username);
-                console.log('[AUTH] Session ID:', req.sessionID);
-                console.log('[AUTH] Cookie settings:', {
-                    domain: req.session.cookie.domain,
-                    path: req.session.cookie.path,
-                    secure: req.session.cookie.secure,
-                    httpOnly: req.session.cookie.httpOnly,
-                    sameSite: req.session.cookie.sameSite,
-                    maxAge: req.session.cookie.maxAge
+
+                // Set user data in session
+                req.session.user = user;
+                req.session.isAuthenticated = true;
+
+                // Save session explicitly
+                req.session.save((saveErr) => {
+                    if (saveErr) {
+                        console.error('[AUTH] Session save error:', saveErr);
+                        return res.redirect('/?auth_error=' + encodeURIComponent('Session save failed'));
+                    }
+                    
+                    console.log('[AUTH] Authentication successful for user:', user.username);
+                    console.log('[AUTH] Session ID:', req.sessionID);
+                    console.log('[AUTH] Cookie settings:', {
+                        name: SESSION_COOKIE_NAME,
+                        domain: req.session.cookie.domain,
+                        path: req.session.cookie.path,
+                        secure: req.session.cookie.secure,
+                        httpOnly: req.session.cookie.httpOnly,
+                        sameSite: req.session.cookie.sameSite,
+                        maxAge: req.session.cookie.maxAge
+                    });
+                    
+                    // Get return URL from session
+                    const returnTo = req.session.returnTo || '/';
+                    delete req.session.returnTo;
+                    
+                    // Redirect to the return URL
+                    console.log('[AUTH] Redirecting to:', returnTo);
+                    res.redirect(returnTo);
                 });
-                
-                // Get return URL from session
-                const returnTo = req.session.returnTo || '/';
-                delete req.session.returnTo;
-                
-                // Redirect to the return URL
-                console.log('[AUTH] Redirecting to:', returnTo);
-                res.redirect(returnTo);
             });
         });
     })(req, res, next);
@@ -409,9 +434,12 @@ app.get('/auth/logout', (req, res) => {
             }
             
             // Clear auth cookie explicitly
-            res.clearCookie('connect.sid', {
+            res.clearCookie(SESSION_COOKIE_NAME, {
                 path: '/',
-                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined
+                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined,
+                secure: process.env.NODE_ENV === 'production',
+                httpOnly: true,
+                sameSite: 'lax'
             });
             
             // Redirect to the referring page or home
