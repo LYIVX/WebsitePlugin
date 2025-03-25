@@ -130,7 +130,7 @@ const sessionConfig = {
 
 // In production, set the domain and other production-specific settings
 if (process.env.NODE_ENV === 'production') {
-    sessionConfig.cookie.domain = '.enderfall.co.uk'; // Add dot for subdomain support
+    sessionConfig.cookie.domain = 'enderfall.co.uk';
     sessionConfig.cookie.secure = true;
     console.log('[SESSION] Using production settings:', {
         domain: sessionConfig.cookie.domain,
@@ -204,9 +204,7 @@ if (process.env.NODE_ENV === 'development') {
     callbackURL = 'http://localhost:3000/auth/discord/callback';
     console.log('[AUTH] Using development callback URL:', callbackURL);
 } else if (process.env.NODE_ENV === 'production') {
-    // Use the same domain as the request
-    const baseUrl = getBaseUrl(req);
-    callbackURL = `${baseUrl}/auth/discord/callback`;
+    callbackURL = 'https://enderfall.co.uk/auth/discord/callback';
     console.log('[AUTH] Using production callback URL:', callbackURL);
 }
 
@@ -447,7 +445,7 @@ app.get('/auth/logout', (req, res) => {
             // Clear auth cookie explicitly
             res.clearCookie(SESSION_COOKIE_NAME, {
                 path: '/',
-                domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
+                domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined,
                 secure: process.env.NODE_ENV === 'production',
                 httpOnly: true,
                 sameSite: 'lax'
@@ -1886,7 +1884,7 @@ app.get('/test-cookie', (req, res) => {
         maxAge: 1000 * 60 * 60 * 24, // 1 day
         httpOnly: false, // Make it readable by client-side JS
         secure: process.env.NODE_ENV === 'production' ? 'auto' : false,
-        domain: process.env.NODE_ENV === 'production' ? '.enderfall.co.uk' : undefined,
+        domain: process.env.NODE_ENV === 'production' ? 'enderfall.co.uk' : undefined,
         path: '/',
         sameSite: 'lax'
     });

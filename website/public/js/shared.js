@@ -192,57 +192,106 @@ function updateThemeToggleTooltip(toggleButton) {
 // Authentication handling
 async function checkAuthState() {
     try {
-        const response = await fetch('/api/session-check', {
-            credentials: 'include',
+        // Check if user has explicitly logged out
+        const loggedOut = localStorage.getItem('logged_out') === 'true';
+        
+        if (loggedOut) {
+            // User has explicitly logged out, keep them logged out
+            console.log('[AUTH] User explicitly logged out, keeping logged out state');
+            updateUIForGuest();
+            return;
+        }
+        
+        // Otherwise, check with the API
+        console.log('[AUTH] Checking authentication with server...');
+        const response = await fetch('/api/user', {
+            credentials: 'include',  // Ensure cookies are sent
             headers: {
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate'
             }
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to check auth state');
-        }
+        console.log('[AUTH] Server response status:', response.status);
         
-        const sessionInfo = await response.json();
-        console.log('[AUTH] Session check result:', sessionInfo);
-        
-        if (sessionInfo.isAuthenticated && sessionInfo.user) {
-            // User is authenticated
-            updateUIForAuthenticatedUser(sessionInfo.user);
-            return true;
+        if (response.ok) {
+            const user = await response.json();
+            console.log('[AUTH] User authenticated:', user.username);
+            
+            // Store auth state in localStorage for quick checking
+            localStorage.setItem('auth', 'true');
+            localStorage.setItem('username', user.username);
+            
+            updateUIForUser(user);
         } else {
-            // User is not authenticated
+            console.log('[AUTH] Not authenticated, response:', response.status);
+            // Clear any stale auth state
+            localStorage.removeItem('auth');
+            localStorage.removeItem('username');
+            
+            // If we hit 401, we need to clear the session
+            if (response.status === 401) {
+                console.log('[AUTH] 401 Unauthorized - clearing session state');
+                // Potentially add a server call to explicitly clear the session
+            }
+            
             updateUIForGuest();
-            return false;
         }
     } catch (error) {
         console.error('[AUTH] Error checking auth state:', error);
         updateUIForGuest();
-        return false;
     }
 }
 
-function updateUIForAuthenticatedUser(user) {
+function updateUIForUser(user) {
+    // Clear the logged out flag when user is authenticated
+    localStorage.removeItem('logged_out');
+    
+    console.log('Updating UI for user:', user);
+    
+    // Update auth button and user menu
     const authButton = document.querySelector('.auth-button');
     const userMenu = document.querySelector('.user-menu');
     const userMenuContainer = document.querySelector('.user-menu-container');
     const profileLink = document.querySelector('[data-page="profile"]');
     const footerProfileLink = document.querySelector('#footer-profile-link');
-    const logoutButton = document.getElementById('logoutButton');
-    const username = document.querySelector('.username');
     const userAvatar = document.querySelector('.user-avatar');
+    const username = document.querySelector('.username');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // Log what we found
+    console.log('Auth button found:', authButton ? 'yes' : 'no');
+    console.log('User menu found:', userMenu ? 'yes' : 'no');
+    console.log('User menu container found:', userMenuContainer ? 'yes' : 'no');
+    console.log('Logout button found:', logoutButton ? 'yes' : 'no');
 
     if (authButton) authButton.style.display = 'none';
+    if (userMenuContainer) {
+        userMenuContainer.style.display = 'flex';
+        console.log('User menu container display set to flex');
+    }
     if (userMenu) userMenu.style.display = 'flex';
-    if (userMenuContainer) userMenuContainer.style.display = 'block';
     if (profileLink) profileLink.style.display = 'block';
     if (footerProfileLink) footerProfileLink.style.display = 'block';
-    if (logoutButton) logoutButton.style.display = 'block';
     
-    if (username) username.textContent = user.username;
     if (userAvatar) {
-        userAvatar.src = user.avatar_url || '/images/default-avatar.png';
+        userAvatar.src = user.avatar 
+            ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` 
+            : '/images/default-avatar.png';
         userAvatar.alt = user.username;
+    }
+    if (username) username.textContent = user.username;
+
+    // Setup logout button
+    if (logoutButton) {
+        console.log('Found logout button:', logoutButton.outerHTML);
+        logoutButton.style.display = 'flex'; // Make sure it's visible
+        logoutButton.addEventListener('click', function(e) {
+            console.log('Logout button clicked');
+            handleLogout(e);
+        });
+    } else {
+        console.warn('Logout button not found in the DOM');
     }
 }
 
@@ -253,8 +302,6 @@ function updateUIForGuest() {
     const profileLink = document.querySelector('[data-page="profile"]');
     const footerProfileLink = document.querySelector('#footer-profile-link');
     const logoutButton = document.getElementById('logoutButton');
-    const username = document.querySelector('.username');
-    const userAvatar = document.querySelector('.user-avatar');
 
     if (authButton) authButton.style.display = 'flex';
     if (userMenu) userMenu.style.display = 'none';
@@ -263,11 +310,64 @@ function updateUIForGuest() {
     if (footerProfileLink) footerProfileLink.style.display = 'none';
     if (logoutButton) logoutButton.style.display = 'none';
     
+    // Reset any user-specific UI elements
+    const username = document.querySelector('.username');
+    const userAvatar = document.querySelector('.user-avatar');
+    
     if (username) username.textContent = '';
     if (userAvatar) {
         userAvatar.src = '/images/default-avatar.png';
         userAvatar.alt = 'Guest';
     }
+    
+    // Reset any page-specific elements that depend on login state
+    
+    // For shop page
+    const linkAccountBtn = document.getElementById('linkAccountBtn');
+    const previewControls = document.getElementById('previewControls');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const linkInfo = document.querySelector('.link-info');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    
+    if (linkAccountBtn) {
+        linkAccountBtn.style.display = 'flex';
+        linkAccountBtn.innerHTML = '<i class="fab fa-discord"></i> Login with Discord';
+        linkAccountBtn.onclick = handleAuth;
+    }
+    
+    if (previewControls) previewControls.style.display = 'none';
+    
+    if (avatarPreview) {
+        // Reset avatar preview to placeholder
+        avatarPreview.innerHTML = '';
+        if (avatarPlaceholder) {
+            avatarPlaceholder.style.display = 'flex';
+            avatarPreview.appendChild(avatarPlaceholder);
+        } else {
+            // Create placeholder if it doesn't exist
+            const placeholder = document.createElement('div');
+            placeholder.className = 'avatar-placeholder';
+            placeholder.innerHTML = '<i class="fas fa-user"></i>';
+            avatarPreview.appendChild(placeholder);
+        }
+    }
+    
+    if (linkInfo) {
+        linkInfo.textContent = 'Login with Discord to view and customize your Minecraft avatar.';
+        linkInfo.style.display = 'block';
+    }
+    
+    // Hide any user-specific content sections
+    const userSpecificContent = document.querySelectorAll('.user-specific-content');
+    userSpecificContent.forEach(element => {
+        element.style.display = 'none';
+    });
+    
+    // Show any guest-specific content sections
+    const guestSpecificContent = document.querySelectorAll('.guest-specific-content');
+    guestSpecificContent.forEach(element => {
+        element.style.display = 'block';
+    });
 }
 
 async function handleAuth() {
@@ -275,12 +375,6 @@ async function handleAuth() {
     try {
         // Clear the logged out flag when attempting to log in
         localStorage.removeItem('logged_out');
-        
-        // Store current page for redirect after login
-        const currentPage = window.location.pathname;
-        if (currentPage !== '/') {
-            localStorage.setItem('returnTo', currentPage);
-        }
         
         window.location.href = '/auth/discord';
     } catch (error) {
